@@ -2,7 +2,8 @@
 const express = require("express");
 const app = require("../server").app;
 
-const userRoutes = require("../routes/userRoutes");
+// api-routes
+const { userRoutes } = require("../routes/routes");
 
 app.get("/", (req, res) => {
   res.send("hello world");
