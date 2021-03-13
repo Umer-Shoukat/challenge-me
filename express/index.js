@@ -1,18 +1,30 @@
 // all express related stuff;
 const express = require("express");
+const swaggerJsdoc = require("swagger-jsdoc");
+const swaggerUi = require("swagger-ui-express");
+
 const app = require("../server").app;
 
+const { apiVersion, swaggerOptions } = require("../constants/constants");
+
 // api-routes
-const { userRoutes } = require("../routes/routes");
+const { userRoutes, teamRoutes } = require("../routes/routes");
 
 app.get("/", (req, res) => {
-  res.send("hello world");
+  res.send(`<h1>Will render the admin panel for the app...!</h1>`);
 });
 
 app.use(express.json());
-
 // all the api-end-points
-const apiPreFix = "/api/v1";
-app.use(apiPreFix, userRoutes);
+app.use(apiVersion, userRoutes);
+app.use(apiVersion, teamRoutes);
+
+// generate the swagger api documentations
+const specs = swaggerJsdoc(swaggerOptions);
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(specs, { explorer: true })
+);
 
 module.exports = app;
