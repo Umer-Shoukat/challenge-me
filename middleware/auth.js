@@ -10,7 +10,7 @@ const auth = async (req, res, next) => {
 
     const user = await User.findOne({
       _id,
-      token,
+      "tokens.token": token,
     });
 
     if (!user) throw new Error("Please Authenticate.");

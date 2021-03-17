@@ -1,4 +1,5 @@
 const User = require("../model/User");
+const transporter = require("../mail/mail");
 const { handleErrors } = require("../helpers/helpers");
 
 const register = async (req, res) => {
@@ -65,6 +66,10 @@ const updateMe = async (req, res) => {
     await user.save();
     // if password is changed recreate the token;;
     if (updates.includes("password")) {
+      // removing the old token;
+      user.tokens = user.tokens.filter((t) => t.token !== req.token);
+      await user.save();
+      // generating the new token
       let token = await user.generateAuthToken();
       res.status(200).send({ user, token });
       return;
@@ -111,6 +116,79 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+const logout = async (req, res) => {
+  try {
+    const { token, user } = req;
+    user.tokens = user.tokens.filter((t) => t.token !== token);
+    await user.save();
+    res.status(201).send({ msg: "User logged out successfully" });
+  } catch (error) {
+    handleErrors(res, error);
+  }
+};
+
+const logoutAll = async (req, res) => {
+  try {
+    const { user } = req;
+    user.tokens = [];
+    await user.save();
+    res
+      .status(201)
+      .send({ msg: "User logged out successfully from all devices" });
+  } catch (error) {
+    handleErrors(res, error);
+  }
+};
+
+const sendOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) throw new Error("No User Found");
+    let rand = Math.random();
+    const otp_code = String(rand).substring(3, 9);
+    user.otp_code = otp_code;
+
+    await user.save();
+
+    const mailData = {
+      from: process.env.EMAIL_USERNAME, // sender address
+      to: email, // list of receivers
+      subject: "Otp to reset password",
+      text: otp_code,
+    };
+
+    transporter.sendMail(mailData, function (err, info) {
+      if (err) {
+        handleErrors(res, err);
+      } else {
+        res.status(200).send({
+          msg: "Otp send to your email account pleas check to verify",
+        });
+      }
+    });
+  } catch (error) {
+    handleErrors(res, error);
+  }
+};
+
+const verifyOtp = async (req, res) => {
+  try {
+    const { email, otp_code } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) throw new Error("No User Found");
+    if (user.otp_code == 0) throw new Error("Otp not send play recheck again.");
+    if (otp_code !== user.otp_code) throw new Error("OTP not matched");
+
+    user.otp_code = "0";
+    await user.save();
+
+    res.status(200).send({ otp_verified: true });
+  } catch (error) {
+    handleErrors(res, error);
+  }
+};
+
 module.exports = {
   login,
   register,
@@ -119,4 +197,8 @@ module.exports = {
   getAllUsers,
   getUserDetail,
   getMe,
+  logout,
+  logoutAll,
+  sendOtp,
+  verifyOtp,
 };

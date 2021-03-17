@@ -1,5 +1,4 @@
 const Team = require("../model/Team");
-
 const { handleErrors } = require("../helpers/helpers");
 
 const createTeam = async (req, res) => {
@@ -54,7 +53,8 @@ const updateTeam = async (req, res) => {
     }
     const team = await Team.findById(id);
     if (!team) throw new Error("No Team Found");
-    if (!team.isLeader(req.user)) {
+
+    if (!team.hasRightToChange(req.user, "co_leader_update_team")) {
       return res
         .status(400)
         .send({ error: "You are not authorize to update team..!" });
@@ -122,7 +122,7 @@ const requestToJoin = async (req, res) => {
       throw new Error("Cannot Join Players Limit reach to maximum limit");
     // check if the user already exist in the team
     const exist = team.players_list.find(
-      (player_id) => player_id.toString() === user_id
+      (player) => player.user_id.toString() === user_id
     );
     if (exist) throw new Error("You have already in the team");
     //
@@ -130,13 +130,19 @@ const requestToJoin = async (req, res) => {
       throw new Error("You are the leader of the team");
     //
     const alreadyRequested = team.request_list.find(
-      (reqId) => reqId.toString() === user_id
+      (player) => player.user_id.toString() === user_id
     );
     if (alreadyRequested)
       throw new Error("You are already requested to join the team");
 
-    if (team.isPrivate) team.request_list.push(user_id);
-    else team.players_list.push(user_id);
+    if (team.isPrivate)
+      team.request_list.push({
+        user_id,
+      });
+    else
+      team.players_list.push({
+        user_id,
+      });
 
     await team.save();
     res.status(201).send({ team });
@@ -148,17 +154,26 @@ const requestToJoin = async (req, res) => {
 const acceptPlayer = async (req, res) => {
   try {
     const { team_id, user_id } = req.body;
-    const user__id = user_id.toString();
+    if (!user_id || !team_id) throw new Error("Payload is not valid.");
 
+    const user__id = user_id.toString();
     const team = await Team.findById(team_id);
     if (!team) throw new Error("No team Found");
 
     // return team;
-
-    if (!team.isLeader(req.user))
-      throw new Error("You are not authorized to accept player");
+    const authenticUserId = team.hasRightToChange(
+      req.user,
+      "co_leader_accept_request"
+    );
+    if (!authenticUserId) {
+      return res
+        .status(400)
+        .send({ error: "You are not authorize to update team..!" });
+    }
     // checking if the user already in the
-    const exist = team.players_list.find((id) => id.toString() === user__id);
+    const exist = team.players_list.find(
+      (player) => player.user_id.toString() === user__id
+    );
     if (exist) throw new Error("User is already in the Team...");
 
     // check if there is limit for the team players to add
@@ -169,12 +184,16 @@ const acceptPlayer = async (req, res) => {
       );
 
     // removing the user from request list
-    team.request_list = team.request_list.filter(
-      (id) => id.toString() !== user__id
+    const index = team.request_list.findIndex(
+      (player) => player.user_id.toString() === user__id
     );
+    if (index === -1) throw new Error("Don't have such request...");
+    team.request_list.splice(index, 1);
 
     // adding the player to the list
-    team.players_list.push(user__id);
+    team.players_list.push({
+      user_id: user__id,
+    });
 
     await team.save();
 
@@ -186,6 +205,34 @@ const acceptPlayer = async (req, res) => {
 
 const rejectPlayer = async (req, res) => {
   try {
+    const { team_id, user_id } = req.body;
+    if (!user_id || !team_id) throw new Error("Payload is not valid.");
+
+    const team = await Team.findById(team_id);
+    if (!team) throw new Error("Team not found");
+
+    // if (!team.isLeader(req.user))
+    //   throw new Error("You are not authorized to reject the user");
+
+    const authenticUserId = team.hasRightToChange(
+      req.user,
+      "co_leader_reject_request"
+    );
+    if (!authenticUserId)
+      throw new Error("You are not authorize to update team..!");
+
+    const exist = team.request_list.find(
+      (player) => player.user_id.toString() === user_id.toString()
+    );
+    if (!exist) throw new Error("User not found.");
+
+    team.request_list = team.request_list.filter(
+      (player) => player.user_id.toString() !== user_id.toString()
+    );
+
+    await team.save();
+
+    res.status(201).send({ team });
   } catch (error) {
     handleErrors(res, error);
   }
@@ -193,6 +240,37 @@ const rejectPlayer = async (req, res) => {
 
 const removePlayer = async (req, res) => {
   try {
+    const { user_id, team_id } = req.body;
+    if (!user_id || !team_id) throw new Error("Payload is not valid.");
+
+    const team = await Team.findById(team_id);
+    if (!team) throw new Error("No team found");
+
+    // if (!team.isLeader(req.user))
+    //   throw new Error("You are not authorized to reject player");
+
+    const authenticUserId = team.hasRightToChange(
+      req.user,
+      "co_leader_remove_player"
+    );
+    if (!authenticUserId)
+      throw new Error("You are not authorize to update team..!");
+
+    const exist = team.players_list.find(
+      (player) => player.user_id.toString() === user_id.toString()
+    );
+    if (!exist) throw new Error("No player found");
+
+    team.players_list = team.players_list.filter(
+      (player) => player.user_id.toString() !== user_id.toString()
+    );
+    // removing the player even if he is the co leader
+    team.co_leaders = team.co_leaders.filter(
+      (player) => player.user_id.toString() !== user_id.toString()
+    );
+
+    await team.save();
+    res.status(201).send({ team });
   } catch (error) {
     handleErrors(res, error);
   }
@@ -200,6 +278,45 @@ const removePlayer = async (req, res) => {
 
 const makeCoLeader = async (req, res) => {
   try {
+    const { user_id, team_id } = req.body;
+    if (!user_id || !team_id) throw new Error("Payload is not valid.");
+
+    const team = await Team.findById(team_id);
+    if (!team) throw new Error("No team Found");
+
+    // if (!team.isLeader(req.user))
+    //   throw new Error("You are not Authorized to perform sun action.");
+
+    const authenticUserId = team.hasRightToChange(
+      req.user,
+      "co_leader_make_co_leader"
+    );
+    if (!authenticUserId)
+      throw new Error("You are not authorize to update team..!");
+
+    const exist = team.players_list.find(
+      (player) => player.user_id.toString() === user_id.toString()
+    );
+    if (!exist) throw new Error("No player found.");
+
+    const alreadyLeader = team.co_leaders.find(
+      (player) => player.user_id.toString() === user_id.toString()
+    );
+    if (alreadyLeader) throw new Error("Player is already a leader");
+
+    // checking the limit for max number of co_leaders
+    const max_numbers = team.rules.max_co_leader;
+    if (team.co_leaders.length >= max_numbers)
+      throw new Error("Max Number of co leaders limit exceeds");
+
+    team.co_leaders.push({
+      user_id,
+      made_by: authenticUserId,
+    });
+
+    await team.save();
+
+    res.status(201).send({ team });
   } catch (error) {
     handleErrors(res, error);
   }
@@ -207,6 +324,34 @@ const makeCoLeader = async (req, res) => {
 
 const removeCoLeader = async (req, res) => {
   try {
+    const { user_id, team_id } = req.body;
+    if (!user_id || !team_id) throw new Error("Payload is not valid.");
+
+    const team = await Team.findById(team_id);
+    if (!team) throw new Error("No Team found");
+
+    // if (!team.isLeader(req.user))
+    //   throw new Error("You are not Authorized to perform sun action.");
+
+    const authenticUserId = team.hasRightToChange(
+      req.user,
+      "co_leader_make_co_leader"
+    );
+    if (!authenticUserId)
+      throw new Error("You are not authorize to update team..!");
+
+    const exist = team.co_leaders.find(
+      (player) => player.user_id.toString() === user_id.toString()
+    );
+    if (!exist) throw new Error("Player Is not a leader");
+
+    team.co_leaders = team.co_leaders.filter(
+      (player) => player.user_id.toString() !== user_id.toString()
+    );
+
+    await team.save();
+
+    res.status(201).send({ team });
   } catch (error) {
     handleErrors(res, error);
   }
@@ -214,6 +359,71 @@ const removeCoLeader = async (req, res) => {
 
 const leaveTeam = async (req, res) => {
   try {
+    const { team_id } = req.body;
+    if (!team_id) throw new Error("Payload is not valid.");
+    const user_id = req.user._id.toString();
+
+    const team = await Team.findById(team_id);
+    if (!team) throw new Error("No Team found");
+
+    if (user_id === team.leader_id.toString())
+      throw new Error("Leader cannot leave the team...");
+
+    const exist = team.players_list.find(
+      (player) => player.user_id.toString() === user_id
+    );
+    if (!exist) throw new Error("Player not Found");
+
+    team.players_list = team.players_list.filter(
+      (player) => player.user_id.toString() !== user_id
+    );
+    // removing if the user is co loader also;
+    team.co_leaders = team.co_leaders.filter(
+      (player) => player.user_id.toString() !== user_id
+    );
+
+    await team.save();
+
+    res.status(201).send({ team });
+  } catch (error) {
+    handleErrors(res, error);
+  }
+};
+
+const updateTeamRules = async (req, res) => {
+  try {
+    const valuesCanUpdate = [
+      "co_leader_accept_request",
+      "co_leader_reject_request",
+      "co_leader_make_co_leader",
+      "co_leader_remove_co_leader",
+      "co_leader_remove_player",
+      "co_leader_update_team",
+      "max_co_leader",
+    ];
+    const team_id = req.body.team_id;
+    delete req.body.team_id;
+    const updates = Object.keys(req.body);
+
+    const validInputs = updates.every((update) =>
+      valuesCanUpdate.includes(update)
+    );
+
+    if (!validInputs) throw new Error("Invalid Inputs");
+
+    const team = await Team.findById(team_id);
+    if (!team) throw new Error("No TEam Found");
+
+    if (!team.isLeader(req.user))
+      throw new Error("You are not authorized to perform such action");
+
+    updates.forEach((update) => {
+      team.rules[update] = req.body[update];
+    });
+
+    await team.save();
+
+    res.status(201).send({ team });
   } catch (error) {
     handleErrors(res, error);
   }
@@ -233,4 +443,5 @@ module.exports = {
   removeCoLeader,
   leaveTeam,
   myTeams,
+  updateTeamRules,
 };

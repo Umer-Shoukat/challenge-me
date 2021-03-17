@@ -33,10 +33,18 @@ const userSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
-    token: {
+    otp_code: {
       type: String,
-      trim: true,
+      default: 0,
     },
+    tokens: [
+      {
+        token: {
+          type: String,
+          trim: true,
+        },
+      },
+    ],
   },
   {
     timestamps: true,
@@ -46,8 +54,9 @@ const userSchema = new mongoose.Schema(
 userSchema.methods.toJSON = function () {
   const user = this;
   const userObject = user.toObject();
-  delete userObject.token;
+  delete userObject.tokens;
   delete userObject.password;
+  delete userObject.otp_code;
   return userObject;
 };
 
@@ -71,7 +80,7 @@ userSchema.methods.generateAuthToken = async function () {
       process.env.JWT_SECRET
     );
 
-    user.token = token;
+    user.tokens.push({ token });
     await user.save();
 
     return token;
