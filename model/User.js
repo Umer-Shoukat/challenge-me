@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      unique: true,
     },
     email: {
       type: String,
@@ -32,6 +33,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: "",
+    },
+    dob: {
+      type: Date,
+      // todo:: will uncomment it later
+      // required: true
     },
     otp_code: {
       type: String,

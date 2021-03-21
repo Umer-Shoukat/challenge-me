@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const User = require("./User");
 
 const teamSchema = new mongoose.Schema(
   {
@@ -133,6 +134,33 @@ teamSchema.methods.hasRightToChange = function (user, ruleType) {
   // only if the user in co_leader list and has right to change
   return user_id;
 };
+
+teamSchema.methods.mapTeamDetails = async function () {
+  const team = this.toObject();
+  const { co_leaders, request_list, players_list, leader_id } = team;
+  const leader = await User.findById(leader_id);
+  const coLeaders = await getUserDetails(co_leaders);
+  const requestLists = await getUserDetails(request_list);
+  const playersLists = await getUserDetails(players_list);
+  return {
+    ...team,
+    leader,
+    coLeaders,
+    requestLists,
+    playersLists,
+  };
+};
+
+// helper function
+async function getUserDetails(ids) {
+  const users = await User.find({
+    _id: {
+      $in: ids.map((user) => mongoose.Types.ObjectId(user.user_id)),
+    },
+  });
+
+  return users;
+}
 
 const Team = mongoose.model("Team", teamSchema);
 

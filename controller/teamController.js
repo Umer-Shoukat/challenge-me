@@ -18,7 +18,7 @@ const createTeam = async (req, res) => {
 const myTeams = async (req, res) => {
   try {
     const teams = await Team.find({ leader_id: req.user._id });
-    res.status(201).send({ teams });
+    res.status(200).send({ teams });
   } catch (error) {
     handleErrors(res, error);
   }
@@ -26,8 +26,11 @@ const myTeams = async (req, res) => {
 
 const viewTeam = async (req, res) => {
   try {
-    const team = await Team.findById(req.params.id);
+    let team = await Team.findById(req.params.id);
     if (!team) throw new Error("No Team Found");
+
+    team = await team.mapTeamDetails();
+
     res.status(200).send({ team });
   } catch (error) {
     handleErrors(res, error);
