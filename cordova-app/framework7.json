@@ -1,8 +1,6 @@
 {
   "cwd": "/home/haroon/Projects/challenge_me/cordova-app",
-  "type": [
-    "cordova"
-  ],
+  "type": ["cordova"],
   "name": "challenge_me",
   "framework": "vue",
   "template": "tabs",
@@ -11,7 +9,7 @@
   "theming": {
     "customColor": false,
     "color": "#007aff",
-    "darkTheme": false,
+    "darkTheme": true,
     "iconFonts": true,
     "fillBars": false
   },
@@ -26,10 +24,7 @@
   "pkg": "io.framework7.myapp",
   "cordova": {
     "folder": "cordova",
-    "platforms": [
-      "ios",
-      "android"
-    ],
+    "platforms": ["ios", "android"],
     "plugins": [
       "cordova-plugin-statusbar",
       "cordova-plugin-keyboard",
