@@ -1,6 +1,6 @@
 <template>
   <auth-layout :errors="errors">
-    <form @submit.prevent="login">
+    <form @submit.prevent="sendOTP">
       <div class="form-group">
         <label for="exampleInputEmail1">Email address</label>
         <input
@@ -11,25 +11,8 @@
           v-model="form.email"
         />
       </div>
-      <div class="form-group">
-        <label for="exampleInputPassword1">Password</label>
-        <input
-          type="password"
-          class="form-control"
-          id="exampleInputPassword1"
-          v-model="form.password"
-        />
-      </div>
 
-      <div class="d-flex align-items-center justify-content-between mt-3">
-        <router-link to="forgot-password">Forgot Password</router-link>
-
-        <router-link to="register"
-          >Don't have account Register yourself..</router-link
-        >
-      </div>
-
-      <button type="submit" class="btn btn-primary mt-5">Login</button>
+      <button type="submit" class="btn btn-primary mt-5">Send OTP</button>
     </form>
   </auth-layout>
 </template>
@@ -37,19 +20,18 @@
 <script>
 import AuthLayout from "@/layout/AuthLayout";
 export default {
-  name: "Login",
+  name: "ForgotPassword",
   components: { AuthLayout },
   data() {
     return {
       form: {
         email: "",
-        password: "",
       },
       errors: [],
     };
   },
   methods: {
-    async login() {
+    async sendOTP() {
       try {
         this.errors = [];
         const keys = Object.keys(this.form);
@@ -58,11 +40,9 @@ export default {
         });
         if (this.errors.length) return;
 
-        const resp = await this.$axios.post("login", this.form);
-        const { user, token } = resp.data;
-        localStorage.setItem("token", token);
-        this.$store.commit("user/SET_USER", user);
-        this.$router.push("/");
+        const resp = await this.$axios.post("send-otp", this.form);
+        console.log(resp.data.msg);
+        this.$router.push(`/verify-otp?email=${this.form.email}`);
       } catch (err) {
         console.log(err);
       }

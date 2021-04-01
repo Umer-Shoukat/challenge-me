@@ -34,7 +34,7 @@ export default {
               msg.remove();
             }, 100);
           }
-        }, timeout - 100);
+        }, (timeout || 5000) - 100);
       }
     });
   },

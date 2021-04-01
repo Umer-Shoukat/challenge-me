@@ -1,3 +1,4 @@
+const jwt = require("jsonwebtoken");
 const User = require("../model/User");
 const transporter = require("../mail/mail");
 const { handleErrors } = require("../helpers/helpers");
@@ -179,11 +180,29 @@ const verifyOtp = async (req, res) => {
     if (!user) throw new Error("No User Found");
     if (user.otp_code == 0) throw new Error("Otp not send play recheck again.");
     if (otp_code !== user.otp_code) throw new Error("OTP not matched");
-
     user.otp_code = "0";
+
+    const token = jwt.sign({ email }, process.env.JWT_SECRET);
+
     await user.save();
 
-    res.status(200).send({ otp_verified: true });
+    res.status(200).send({ otp_verified: true, token });
+  } catch (error) {
+    handleErrors(res, error);
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { password, token } = req.body;
+    if (!token) throw new Error("invalid token");
+    if (!password) throw new Error("Password not provided");
+    const { email } = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findOne({ email });
+    if (!user) throw new Error("User not found..!");
+    user.password = password;
+    await user.save();
+    res.status(201).send({ msg: "Password rest successfully. Please login" });
   } catch (error) {
     handleErrors(res, error);
   }
@@ -201,4 +220,5 @@ module.exports = {
   logoutAll,
   sendOtp,
   verifyOtp,
+  resetPassword,
 };

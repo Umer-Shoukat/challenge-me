@@ -18,10 +18,10 @@ export default {
         return config;
       },
       (error) => {
-        store.commit(
-          "SET_APP_ERROR",
-          error?.response?.data?.error ?? "Something went Wrong"
-        );
+        store.commit("ADD_NOTIFIER", {
+          text: error?.response?.data?.error ?? "Something went Wrong",
+          title: "Error",
+        });
         return Promise.reject(error);
       }
     );
@@ -32,10 +32,10 @@ export default {
         return response;
       },
       (error) => {
-        store.commit(
-          "SET_APP_ERROR",
-          error?.response?.data?.error ?? "Something went Wrong"
-        );
+        store.commit("ADD_NOTIFIER", {
+          text: error?.response?.data?.error ?? "Something went Wrong",
+          title: "Error",
+        });
         return Promise.reject(error);
       }
     );

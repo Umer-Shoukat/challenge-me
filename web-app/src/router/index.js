@@ -26,6 +26,21 @@ const routes = [
     name: "Register",
     component: () => import("@/views/auth/Register"),
   },
+  {
+    path: "/forgot-password",
+    name: "ForgotPassword",
+    component: () => import("@/views/auth/ForgotPassword"),
+  },
+  {
+    path: "/verify-otp",
+    name: "VerifyOTP",
+    component: () => import("@/views/auth/VerifyOTP"),
+  },
+  {
+    path: "/reset-password",
+    name: "ResetPassword",
+    component: () => import("@/views/auth/ResetPassword"),
+  },
 ];
 
 const router = createRouter({

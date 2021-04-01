@@ -17,6 +17,7 @@ const {
   logoutAll,
   sendOtp,
   verifyOtp,
+  resetPassword,
 } = require("../controller/userController");
 
 // public routes
@@ -215,5 +216,23 @@ router.post("/send-otp", sendOtp);
  *         description: Username and password don't match
  */
 router.post("/verify-otp", verifyOtp);
+
+/**
+ * @swagger
+ * /reset-password:
+ *   post:
+ *     tags:
+ *       - Users
+ *     name: verify otp-code
+ *     summary: Verify otp
+ *     responses:
+ *       200:
+ *         description: User found and logged in successfully
+ *       401:
+ *         description: Bad username, not found in db
+ *       403:
+ *         description: Username and password don't match
+ */
+router.post("/reset-password", resetPassword);
 
 module.exports = router;

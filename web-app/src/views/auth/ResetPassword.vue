@@ -1,35 +1,29 @@
 <template>
   <auth-layout :errors="errors">
-    <form @submit.prevent="login">
+    <form @submit.prevent="resetPassword">
       <div class="form-group">
-        <label for="exampleInputEmail1">Email address</label>
-        <input
-          type="email"
-          class="form-control"
-          id="exampleInputEmail1"
-          aria-describedby="emailHelp"
-          v-model="form.email"
-        />
-      </div>
-      <div class="form-group">
-        <label for="exampleInputPassword1">Password</label>
+        <label for="exampleInputEmail1">Enter Password</label>
         <input
           type="password"
           class="form-control"
-          id="exampleInputPassword1"
+          id="exampleInputEmail1"
+          aria-describedby="emailHelp"
           v-model="form.password"
         />
       </div>
 
-      <div class="d-flex align-items-center justify-content-between mt-3">
-        <router-link to="forgot-password">Forgot Password</router-link>
-
-        <router-link to="register"
-          >Don't have account Register yourself..</router-link
-        >
+      <div class="form-group">
+        <label for="exampleInputEmail1">Confirm Password</label>
+        <input
+          type="password"
+          class="form-control"
+          id="exampleInputEmail1"
+          aria-describedby="emailHelp"
+          v-model="form.confirm_password"
+        />
       </div>
 
-      <button type="submit" class="btn btn-primary mt-5">Login</button>
+      <button type="submit" class="btn btn-primary mt-5">Send</button>
     </form>
   </auth-layout>
 </template>
@@ -37,19 +31,19 @@
 <script>
 import AuthLayout from "@/layout/AuthLayout";
 export default {
-  name: "Login",
+  name: "ResetPassword",
   components: { AuthLayout },
   data() {
     return {
       form: {
-        email: "",
         password: "",
+        confirm_password: "",
       },
       errors: [],
     };
   },
   methods: {
-    async login() {
+    async resetPassword() {
       try {
         this.errors = [];
         const keys = Object.keys(this.form);
@@ -58,11 +52,15 @@ export default {
         });
         if (this.errors.length) return;
 
-        const resp = await this.$axios.post("login", this.form);
-        const { user, token } = resp.data;
-        localStorage.setItem("token", token);
-        this.$store.commit("user/SET_USER", user);
-        this.$router.push("/");
+        const resp = await this.$axios.post("/reset-password", {
+          ...this.form,
+          token: this.$route.query.token,
+        });
+
+        const { msg } = resp.data;
+        console.log(msg);
+
+        this.$router.push("/login");
       } catch (err) {
         console.log(err);
       }
