@@ -223,8 +223,8 @@ router.post("/verify-otp", verifyOtp);
  *   post:
  *     tags:
  *       - Users
- *     name: verify otp-code
- *     summary: Verify otp
+ *     name: reset the password
+ *     summary: Will reset the password
  *     responses:
  *       200:
  *         description: User found and logged in successfully
