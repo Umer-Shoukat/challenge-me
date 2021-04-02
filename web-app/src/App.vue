@@ -20,7 +20,7 @@ export default {
         const id = Date.now();
         div.setAttribute("id", id);
         div.classList.add(color);
-        div.classList.add("custom-alert");
+        div.classList.add("alert alert-light custom-alert");
         div.innerHTML = `<p>${text + " " + title} </p>`;
         document.body.prepend(div);
 
@@ -47,13 +47,9 @@ export default {
         const token = localStorage.getItem("token");
         if (token) {
           const resp = await this.$axios.get("me");
-
           this.$store.commit("user/SET_USER", resp.data);
-          this.loading = false;
-        } else {
-          this.$router.push("/login");
-          this.loading = false;
         }
+        this.loading = false;
       } catch (err) {
         this.loading = false;
         console.log(err);

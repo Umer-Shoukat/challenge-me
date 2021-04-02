@@ -65,7 +65,7 @@ module.exports = {
   async getChallengesList(req, res) {
     try {
       const sort = {};
-      const { page = 1, limit = 2, sortBy } = req.query;
+      const { page = 1, limit = 10, sortBy } = req.query;
       if (sortBy) {
         const parts = sortBy.split(":");
         sort[parts[0]] = parts[1] === "desc" ? -1 : 1;
