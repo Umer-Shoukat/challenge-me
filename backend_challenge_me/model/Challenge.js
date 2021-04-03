@@ -1,5 +1,8 @@
 const mongoose = require("mongoose");
 
+const User = require("./User");
+const Team = require("./Team");
+
 const challengeSchema = new mongoose.Schema(
   {
     name: {
@@ -57,6 +60,24 @@ const challengeSchema = new mongoose.Schema(
     challenger_team_id: {
       type: mongoose.Types.ObjectId,
     },
+    tags: [
+      {
+        type: String,
+        required: true,
+      },
+    ],
+    location: {
+      address: {
+        type: String,
+        default: "",
+      },
+      latitude: {
+        type: Number,
+      },
+      longitude: {
+        type: Number,
+      },
+    },
     challenge_requests: [
       {
         challenger_id: {
@@ -74,18 +95,6 @@ const challengeSchema = new mongoose.Schema(
         },
       },
     ],
-    location: {
-      address: {
-        type: String,
-        default: "",
-      },
-      latitude: {
-        type: Number,
-      },
-      longitude: {
-        type: Number,
-      },
-    },
     rules: {
       max_team_players: { type: Number, default: 8 },
       min_team_players: { type: Number, default: 1 },
@@ -93,17 +102,55 @@ const challengeSchema = new mongoose.Schema(
       min_age: { type: Number },
       max_number_players: { type: Number, default: 8 },
     },
-    tags: [
-      {
-        type: String,
-        required: true,
-      },
-    ],
   },
   {
     timestamps: true,
   }
 );
+
+challengeSchema.statics.mapChallenges = async function (challenges) {
+  try {
+  } catch (err) {
+    throw new Error(err);
+  }
+};
+
+challengeSchema.methods.mapChallenge = async function () {
+  const challenge = this.toObject();
+  const { creator_id, challenge_requests, open_players_list, type } = challenge;
+
+  const creator = await User.findById(creator_id);
+  const open_players = await getUserDetails(
+    User,
+    open_players_list.map((request) => request.user_id)
+  );
+  const request_list = await getUserDetails(
+    type === "team" ? Team : User,
+    challenge_requests.map((request) => {
+      if (type === "team") return request.challenger_team_id;
+      return request.challenger_id;
+    })
+  );
+
+  challenge.creator = creator;
+  challenge.open_players = open_players;
+  challenge.request_list = request_list;
+
+  delete challenge.challenge_requests;
+  delete challenge.open_players_list;
+
+  return challenge;
+};
+
+async function getUserDetails(Modal, ids) {
+  const modal = await Modal.find({
+    _id: {
+      $in: ids.map((id) => mongoose.Types.ObjectId(id)),
+    },
+  });
+
+  return modal;
+}
 
 challengeSchema.methods.isCreator = function ({ _id }) {
   const challenge = this.toObject();

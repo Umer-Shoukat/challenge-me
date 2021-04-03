@@ -45,23 +45,33 @@ module.exports = {
         );
       // todo:: make another check to see if the challenge type is team and creator is the admin/leader of the team
 
-      const challenge = new Challenge(req.body);
+      let challenge = new Challenge(req.body);
       challenge.creator_id = req.user._id;
       await challenge.save();
+
+      challenge = await challenge.mapChallenge();
       res.status(201).send({ challenge });
     } catch (error) {
       handleErrors(res, error);
     }
   },
+  // --------------------------------------------
+  // --------GET SINGLE CHALLENGE----------------
+  // --------------------------------------------
   async getSingleChallenge(req, res) {
     try {
-      const challenge = await Challenge.findById(req.params.id);
+      let challenge = await Challenge.findById(req.params.id);
       if (!challenge) throw new Error("No CHallenge found...!");
+
+      challenge = await challenge.mapChallenge();
       res.status(200).send({ challenge });
     } catch (error) {
       handleErrors(res, error);
     }
   },
+  // -----------------------------------------------
+  // --------GET LIST OF CHALLENGES ----------------
+  // -----------------------------------------------
   async getChallengesList(req, res) {
     try {
       const sort = {};
@@ -77,8 +87,14 @@ module.exports = {
         .sort(sort)
         .exec();
 
+      const mapChallenges = await Promise.all(
+        challenges.map(async (challenge) => {
+          return await challenge.mapChallenge();
+        })
+      );
+
       res.status(200).send({
-        challenges,
+        challenges: mapChallenges,
         totalPages: Math.ceil(count / limit),
         currentPage: page,
         totalDocuments: count,
@@ -87,6 +103,9 @@ module.exports = {
       handleErrors(res, error);
     }
   },
+  // ------------------------------------------
+  // --------UPDATE CHALLENGE-----------------
+  // -----------------------------------------
   async updateChallenge(req, res) {
     try {
       const id = req.body.id;
@@ -133,7 +152,7 @@ module.exports = {
           "You must have a team to create a challenge for a team"
         );
 
-      const challenge = await Challenge.findById(id);
+      let challenge = await Challenge.findById(id);
       if (!challenge) throw new Error("Challenge not found");
 
       // check if the user is authorized to make changes
@@ -143,24 +162,33 @@ module.exports = {
 
       await challenge.save();
 
+      challenge = await challenge.mapChallenge();
       res.status(201).send({ challenge });
     } catch (error) {
       handleErrors(res, error);
     }
   },
+  // ------------------------------------------
+  // --------DELETE CHALLENGE-----------------
+  // -----------------------------------------
   async deleteChallenge(req, res) {
     try {
-      const challenge = await Challenge.findById(req.body.id);
+      let challenge = await Challenge.findById(req.body.id);
       if (!challenge) throw new Error("No challenge Found");
 
       // checking if the user is authorized to delete the challenge
       challenge.isCreator(req.user);
       await challenge.remove();
+
+      challenge = await challenge.mapChallenge();
       res.status(201).send({ challenge });
     } catch (error) {
       handleErrors(res, error);
     }
   },
+  // -------------------------------------------
+  // --------ADD CHALLENGE ROLES----------------
+  // -------------------------------------------
   async addChallengeRules(req, res) {
     try {
       const rulesCanChange = [
@@ -176,23 +204,27 @@ module.exports = {
       const validRules = rules.every((rule) => rulesCanChange.includes(rule));
       if (!validRules) throw new Error("Invalid Rules");
 
-      const challenge = await Challenge.findById(req.body.id);
+      let challenge = await Challenge.findById(req.body.id);
       if (!challenge) throw new Error("No challenge Found");
 
       challenge.isCreator(req.user);
       rules.forEach((rule) => (challenge.rules[rule] = req.body.rules[rule]));
 
       await challenge.save();
+      challenge = await challenge.mapChallenge();
       res.status(201).send({ challenge });
     } catch (error) {
       handleErrors(res, error);
     }
   },
+  // -----------------------------------------------
+  // --------REQUEST FOR A CHALLENGE----------------
+  // -----------------------------------------------
   async requestChallenge(req, res) {
     try {
       // todo:: will validate it according to the rules of the game...
       const { id, team_id } = req.body;
-      const challenge = await Challenge.findById(id);
+      let challenge = await Challenge.findById(id);
       if (!challenge) throw new Error("No challenge found");
       const { challenger_id, is_private, type } = challenge;
       if (challenger_id) throw new Error("Someone has already challenged...");
@@ -237,15 +269,19 @@ module.exports = {
         }
       }
       await challenge.save();
+      challenge = await challenge.mapChallenge();
       res.status(201).send({ challenge });
     } catch (error) {
       handleErrors(res, error);
     }
   },
+  // -------------------------------------------------
+  // --------ACCEPT CHALLENGER REQUEST----------------
+  // -------------------------------------------------
   async acceptChallenge(req, res) {
     try {
       const { obj_id, id } = req.body;
-      const challenge = await Challenge.findById(id);
+      let challenge = await Challenge.findById(id);
       if (!challenge) throw new Error("No challenge found");
 
       // if the challenger already exist
@@ -280,15 +316,19 @@ module.exports = {
 
       challenge.challenge_requests = [];
       await challenge.save();
+      challenge = await challenge.mapChallenge();
       res.status(201).send({ challenge });
     } catch (error) {
       handleErrors(res, error);
     }
   },
+  // -------------------------------------------------
+  // --------REJECT CHALLENGER REQUEST----------------
+  // -------------------------------------------------
   async rejectChallenge(req, res) {
     try {
       const { obj_id, id } = req.body;
-      const challenge = await Challenge.findById(id);
+      let challenge = await Challenge.findById(id);
       if (!challenge) throw new Error("No Challenge Found");
       challenge.isCreator(req.user);
 
@@ -303,20 +343,23 @@ module.exports = {
         (request) => request._id.toString() !== obj_id.toString()
       );
       await challenge.save();
+      challenge = await challenge.mapChallenge();
       res.status(201).send({ challenge });
     } catch (error) {
       handleErrors(res, error);
     }
   },
+
+  // ------------------------------------------
+  // --------REMOVE CHALLENGER----------------
+  // -----------------------------------------
   async removeChallenger(req, res) {
     try {
       const { user_id, id } = req.body;
-      const challenge = await Challenge.findById(id);
+      let challenge = await Challenge.findById(id);
       if (!challenge) throw new Error("Challenge not found");
       challenge.isCreator(req.user);
-
       const { type, open_players_list } = challenge;
-
       if (type === "team") {
         delete challenge.challenger_id;
         delete challenge.challenger_team_id;
@@ -327,17 +370,26 @@ module.exports = {
           (player) => player.user_id.toString() !== user_id.toString()
         );
       }
-
       await challenge.save();
-
+      challenge = await challenge.mapChallenge();
       res.status(201).send({ challenge });
     } catch (error) {
       handleErrors(res, error);
     }
   },
+  // ---------------------------------------------------
+  // --------GET CURRENT USER CHALLENGES----------------
+  // ---------------------------------------------------
   async getMyChallenges(req, res) {
     try {
-      const challenges = await Challenge.find({ creator_id: req.user._id });
+      let challenges = await Challenge.find({ creator_id: req.user._id });
+
+      challenges = await Promise.all(
+        challenges.map(async (challenge) => {
+          return await challenge.mapChallenge();
+        })
+      );
+
       res.status(200).send({ challenges });
     } catch (error) {
       handleErrors(res, error);
