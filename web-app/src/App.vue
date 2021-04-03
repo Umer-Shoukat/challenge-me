@@ -1,7 +1,6 @@
 <template>
-  <loader :loading="loading">
-    <router-view />
-  </loader>
+  <loader :loading="loading"></loader>
+  <router-view v-if="!loading" />
 </template>
 
 <script>
@@ -20,7 +19,7 @@ export default {
         const id = Date.now();
         div.setAttribute("id", id);
         div.classList.add(color);
-        div.classList.add("alert alert-light custom-alert");
+        div.classList.add("custom-alert");
         div.innerHTML = `<p>${text + " " + title} </p>`;
         document.body.prepend(div);
 

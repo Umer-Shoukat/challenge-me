@@ -11,6 +11,7 @@ import "./scss/main.scss";
 import "animate.css";
 
 import Loader from "@/components/Loader";
+import AuthenticatedLayout from "@/layout/AuthenticatedLayout";
 
 const app = createApp(App)
   .use(store)
@@ -20,5 +21,6 @@ app.use(service);
 app.use(notifier);
 
 app.component("loader", Loader);
+app.component("AuthenticatedLayout", AuthenticatedLayout);
 
 app.mount("#app");

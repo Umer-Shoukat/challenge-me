@@ -52,6 +52,15 @@ const routes = [
       requireAuth: false,
     },
   },
+  // challenges
+  {
+    path: "/challenge/:id",
+    name: "Challenge",
+    component: () => import("@/views/challenges/Challenge"),
+    meta: {
+      requireAuth: true,
+    },
+  },
 ];
 
 const router = createRouter({
@@ -61,11 +70,16 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const hasUser = store.state.user.user;
-  const authRequire = to.meta.requireAuth;
 
-  if (authRequire && !hasUser) return next("/login");
-
-  next();
+  if (to.matched.some((record) => record.meta.requiresAuth)) {
+    if (!hasUser) {
+      next("/login");
+    } else {
+      next();
+    }
+  } else {
+    next();
+  }
 });
 
 export default router;

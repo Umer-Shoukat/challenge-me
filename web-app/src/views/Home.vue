@@ -1,15 +1,15 @@
 <template>
-  <div class="container">
-    <div class="header my-5 py-5">
-      herder
-    </div>
+  <authenticated-layout>
     <div class="row">
       <div
         class="col-lg-3 col-md-6 col-12"
         v-for="challenge in challenges"
         :key="challenge._id"
       >
-        <div class="card mb-3">
+        <div
+          class="card mb-3"
+          @click="$router.push(`/challenge/${challenge._id}`)"
+        >
           <img
             class="card-img-top"
             src="https://via.placeholder.com/200x90.png"
@@ -48,7 +48,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </authenticated-layout>
 </template>
 
 <script>
@@ -69,16 +69,6 @@ export default {
     ...mapState(["user"]),
   },
   methods: {
-    async logout() {
-      try {
-        await this.$axios.get("logout");
-        localStorage.removeItem("token");
-        this.$store.commit("user/SET_USER", null);
-        this.$router.push("/login");
-      } catch (err) {
-        console.log(err);
-      }
-    },
     async fetchChallenges() {
       try {
         const resp = await this.$axios.get("challenges");
