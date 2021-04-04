@@ -71,7 +71,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const hasUser = store.state.user.user;
 
-  if (to.matched.some((record) => record.meta.requiresAuth)) {
+  if (to.matched.some((record) => record.meta.requireAuth)) {
     if (!hasUser) {
       next("/login");
     } else {

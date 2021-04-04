@@ -1,6 +1,6 @@
 <template>
   <loader :loading="loading"></loader>
-  <router-view v-if="!loading" />
+  <router-view />
 </template>
 
 <script>

@@ -1,5 +1,9 @@
 <template>
   <authenticated-layout>
+    <div class="mb-4">
+      <button class="btn btn-primary">Create Challenge</button>
+      <button class="btn btn-secondary ml-3">Create Team</button>
+    </div>
     <div class="row">
       <div
         class="col-lg-3 col-md-6 col-12"

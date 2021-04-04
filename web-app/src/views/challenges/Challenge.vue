@@ -3,6 +3,16 @@
     <h1 class="heading">{{ challenge.name }}</h1>
     <p><strong>Deacription:</strong> {{ challenge.description }}</p>
 
+    <!-- creator details -->
+    <div v-if="!isCreator">
+      <h1>Creator Details</h1>
+      <p><strong>Name:</strong> {{ challenge.creator.name }}</p>
+    </div>
+
+    <div v-else>
+      <h1>Creator is you</h1>
+    </div>
+
     <!-- if not creator -->
     <div class="cta" v-if="!isCreator">
       <button class="btn btn-primary" v-if="canRequestChallenge">

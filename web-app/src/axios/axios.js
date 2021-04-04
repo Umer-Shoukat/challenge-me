@@ -32,6 +32,9 @@ export default {
         return response;
       },
       (error) => {
+        if (error.response.status === 401) {
+          localStorage.removeItem("token");
+        }
         store.commit("ADD_NOTIFIER", {
           text: error?.response?.data?.error ?? "Something went Wrong",
           title: "Error",
