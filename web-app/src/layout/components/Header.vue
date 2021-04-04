@@ -2,16 +2,24 @@
   <div class="bg-light">
     <nav class="navbar navbar-light ">
       <router-link class="navbar-brand" to="/">Header</router-link>
-      <button type="button" class="btn btn-outline-danger" @click="logout">
-        Logout
-      </button>
+      <div class="d-flex align-items-center">
+        <p class="name mb-0 text-bold mr-5">{{ user.name }}</p>
+        <button type="button" class="btn btn-outline-danger" @click="logout">
+          Logout
+        </button>
+      </div>
     </nav>
   </div>
 </template>
 
 <script>
+import { createNamespacedHelpers } from "vuex";
+const { mapState } = createNamespacedHelpers("user");
 export default {
   name: "Header",
+  computed: {
+    ...mapState(["user"]),
+  },
   methods: {
     async logout() {
       try {

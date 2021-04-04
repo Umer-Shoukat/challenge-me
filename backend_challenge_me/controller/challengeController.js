@@ -74,31 +74,49 @@ module.exports = {
   // -----------------------------------------------
   async getChallengesList(req, res) {
     try {
-      const sort = {};
-      const { page = 1, limit = 10, sortBy } = req.query;
+      const sort = {
+        createdAt: -1,
+      };
+      const { page = 1, limit = 10, sortBy, query = "" } = req.query;
       if (sortBy) {
-        const parts = sortBy.split(":");
-        sort[parts[0]] = parts[1] === "desc" ? -1 : 1;
+        const sortKeys = sortBy.split(",");
+        sortKeys.forEach((keys) => {
+          let parts = keys.split(":");
+          sort[parts[0]] = parts[1] === "desc" ? -1 : 1;
+        });
       }
-      const count = await Challenge.countDocuments();
-      const challenges = await Challenge.find()
-        .limit(parseInt(limit) * 1)
-        .skip((parseInt(page) - 1) * parseInt(limit))
-        .sort(sort)
-        .exec();
 
-      const mapChallenges = await Promise.all(
-        challenges.map(async (challenge) => {
-          return await challenge.mapChallenge();
-        })
+      // legacy code
+      // const count = await Challenge.countDocuments();
+      // let challenges = await Challenge.find()
+      //   .limit(parseInt(limit) * 1)
+      //   .skip((parseInt(page) - 1) * parseInt(limit))
+      //   .sort(sort)
+      //   .exec();
+
+      // const mapChallenges = await Promise.all(
+      //   challenges.map(async (challenge) => {
+      //     return await challenge.mapChallenge();
+      //   })
+      // );
+      let challenges = await Challenge.paginate(
+        {
+          $or: [
+            { name: new RegExp(query, "gi") },
+            { description: new RegExp(query, "gi") },
+          ],
+        },
+        {
+          page,
+          limit,
+          sort,
+          customLabels: {
+            docs: "challenges",
+          },
+        }
       );
 
-      res.status(200).send({
-        challenges: mapChallenges,
-        totalPages: Math.ceil(count / limit),
-        currentPage: page,
-        totalDocuments: count,
-      });
+      res.status(200).send(challenges);
     } catch (error) {
       handleErrors(res, error);
     }

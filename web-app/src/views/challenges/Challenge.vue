@@ -1,5 +1,6 @@
 <template>
   <authenticated-layout :loading="loading">
+    <router-link to="/" class="btn btn-secondary">go Back</router-link>
     <h1 class="heading">{{ challenge.name }}</h1>
     <p><strong>Deacription:</strong> {{ challenge.description }}</p>
 

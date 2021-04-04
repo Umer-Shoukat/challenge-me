@@ -4,6 +4,45 @@
       <button class="btn btn-primary">Create Challenge</button>
       <button class="btn btn-secondary ml-3">Create Team</button>
     </div>
+
+    <div class="input-group mb-3">
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Serch Challenge"
+        aria-describedby="button-addon2"
+        v-model="search_query"
+      />
+      <div class="input-group-append">
+        <button
+          class="btn btn-outline-primary"
+          type="button"
+          id="button-addon2"
+          @click="fetchChallenges"
+        >
+          Search
+        </button>
+      </div>
+    </div>
+
+    <div class="input-group mb-3">
+      <div class="input-group-prepend">
+        <label class="input-group-text" for="inputGroupSelect01"
+          >Select Limit</label
+        >
+      </div>
+      <select
+        class="custom-select"
+        id="inputGroupSelect01"
+        v-model="limit"
+        @change="(page = 1), fetchChallenges()"
+      >
+        <option value="1">1</option>
+        <option value="5">5</option>
+        <option value="10">10</option>
+      </select>
+    </div>
+
     <div class="row">
       <div
         class="col-lg-3 col-md-6 col-12"
@@ -52,6 +91,32 @@
         </div>
       </div>
     </div>
+
+    <nav aria-label="Page navigation example my-5">
+      <ul class="pagination">
+        <li class="page-item" :class="{ disabled: !prevPage }">
+          <button class="page-link" @click="goPrevPage">
+            Previous
+          </button>
+        </li>
+        <li
+          class="page-item"
+          :class="{ active: page == n }"
+          v-for="n in totalPages"
+          :key="n"
+          @click="goToPage(n)"
+        >
+          <button class="page-link">
+            {{ n }}
+          </button>
+        </li>
+        <li class="page-item" :class="{ disabled: !nextPage }">
+          <button class="page-link" @click="goNextPage">
+            Next
+          </button>
+        </li>
+      </ul>
+    </nav>
   </authenticated-layout>
 </template>
 
@@ -66,7 +131,17 @@ export default {
   data() {
     return {
       challenges: [],
+      search_query: "",
       moment: moment,
+      limit: 10,
+      page: 1,
+      pagingCounter: 1,
+      hasNextPage: false,
+      hasPrevPage: false,
+      nextPage: null,
+      prevPage: null,
+      totalDocs: null,
+      totalPages: null,
     };
   },
   computed: {
@@ -75,13 +150,33 @@ export default {
   methods: {
     async fetchChallenges() {
       try {
-        const resp = await this.$axios.get("challenges");
+        const resp = await this.$axios.get(
+          `challenges?query=${this.search_query}&page=${this.page}&limit=${this.limit}`
+        );
 
-        const { challenges } = resp.data;
-        this.challenges = challenges;
+        let keys = Object.keys(resp.data);
+        keys.forEach((key) => {
+          this[key] = resp.data[key];
+        });
+        console.log(resp);
       } catch (err) {
         console.log(err);
       }
+    },
+    goPrevPage() {
+      if (!this.prevPage && this.page == this.prevPage) return;
+      this.page = this.prevPage;
+      this.fetchChallenges();
+    },
+    goNextPage() {
+      if (!this.nextPage && this.page == this.nextPage) return;
+      this.page = this.nextPage;
+      this.fetchChallenges();
+    },
+    goToPage(page) {
+      if (page == this.page) return;
+      this.page = Number(page);
+      this.fetchChallenges();
     },
   },
   created() {

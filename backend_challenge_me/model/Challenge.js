@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const mongoosePaginate = require("mongoose-paginate-v2");
 
 const User = require("./User");
 const Team = require("./Team");
@@ -170,6 +171,9 @@ challengeSchema.methods.hasRequested = function (user_id) {
 
   return true;
 };
+
+challengeSchema.plugin(mongoosePaginate);
+challengeSchema.index({ name: "text", description: "text" });
 
 const Challenge = mongoose.model("Challenge", challengeSchema);
 
