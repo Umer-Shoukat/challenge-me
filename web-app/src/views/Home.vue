@@ -1,8 +1,12 @@
 <template>
   <authenticated-layout>
     <div class="mb-4">
-      <button class="btn btn-primary">Create Challenge</button>
-      <button class="btn btn-secondary ml-3">Create Team</button>
+      <router-link to="/create-challenge" class="btn btn-primary"
+        >Create Challenge</router-link
+      >
+      <router-link to="/create-team" class="btn btn-secondary ml-3"
+        >Create Team</router-link
+      >
     </div>
 
     <div class="input-group mb-3">
@@ -158,7 +162,6 @@ export default {
         keys.forEach((key) => {
           this[key] = resp.data[key];
         });
-        console.log(resp);
       } catch (err) {
         console.log(err);
       }

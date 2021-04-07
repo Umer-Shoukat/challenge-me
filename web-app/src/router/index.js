@@ -61,6 +61,23 @@ const routes = [
       requireAuth: true,
     },
   },
+  {
+    path: "/create-challenge",
+    name: "CreateChallenge",
+    component: () => import("@/views/challenges/CreateChallenge"),
+    meta: {
+      requireAuth: true,
+    },
+  },
+  // teams
+  {
+    path: "/create-team",
+    name: "CreateTeam",
+    component: () => import("@/views/teams/CreateTeam"),
+    meta: {
+      requireAuth: true,
+    },
+  },
 ];
 
 const router = createRouter({
