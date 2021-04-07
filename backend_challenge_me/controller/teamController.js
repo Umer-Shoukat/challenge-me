@@ -7,10 +7,10 @@ module.exports = {
   // ------------------------------------
   async createTeam(req, res) {
     try {
-      const leader_id = req.user._id.toString();
+      const leader = req.user._id.toString();
       const team = new Team({
         ...req.body,
-        leader_id,
+        leader,
       });
       await team.save();
       res.status(201).send({ team });
@@ -23,10 +23,12 @@ module.exports = {
   // ------------------------------------
   async viewTeam(req, res) {
     try {
-      let team = await Team.findById(req.params.id);
+      let team = await Team.findById(req.params.id)
+        .populate("leader")
+        .populate("co_leaders")
+        .populate("request_list")
+        .populate("players_list");
       if (!team) throw new Error("No Team Found");
-
-      team = await team.mapTeamDetails();
 
       res.status(200).send({ team });
     } catch (error) {
@@ -71,7 +73,11 @@ module.exports = {
       if (!validInput) {
         return res.status(400).send({ error: "Invalid updates!" });
       }
-      const team = await Team.findById(id);
+      const team = await Team.findById(id)
+        .populate("leader")
+        .populate("co_leaders")
+        .populate("request_list")
+        .populate("players_list");
       if (!team) throw new Error("No Team Found");
 
       if (!team.hasRightToChange(req.user, "co_leader_update_team")) {
@@ -91,25 +97,36 @@ module.exports = {
   // ------------------------------------
   async getTeams(req, res) {
     try {
-      const sort = {};
-      const { page = 1, limit = 2, sortBy } = req.query;
+      const sort = {
+        createdAt: -1,
+      };
+      const { page = 1, limit = 10, sortBy, query = "" } = req.query;
       if (sortBy) {
-        const parts = sortBy.split(":");
-        sort[parts[0]] = parts[1] === "desc" ? -1 : 1;
+        const sortKeys = sortBy.split(",");
+        sortKeys.forEach((keys) => {
+          let parts = keys.split(":");
+          sort[parts[0]] = parts[1] === "desc" ? -1 : 1;
+        });
       }
-      const count = await Team.countDocuments();
-      const teams = await Team.find()
-        .limit(parseInt(limit) * 1)
-        .skip((parseInt(page) - 1) * parseInt(limit))
-        .sort(sort)
-        .exec();
 
-      res.status(200).send({
-        teams,
-        totalPages: Math.ceil(count / limit),
-        currentPage: page,
-        totalDocuments: count,
-      });
+      const teams = await Team.paginate(
+        {
+          $or: [
+            { name: new RegExp(query, "gi") },
+            { description: new RegExp(query, "gi") },
+          ],
+        },
+        {
+          page,
+          limit,
+          sort,
+          customLabels: {
+            docs: "teams",
+          },
+        }
+      );
+
+      res.status(200).send(teams);
     } catch (error) {
       handleErrors(res, error);
     }
@@ -121,7 +138,11 @@ module.exports = {
     try {
       const user_id = req.user._id.toString();
 
-      const team = await Team.findById(req.body.id);
+      const team = await Team.findById(req.body.id)
+        .populate("leader")
+        .populate("co_leaders")
+        .populate("request_list")
+        .populate("players_list");
       if (!team) throw new Error("No team Found");
 
       // first check if the team limit is full
@@ -130,27 +151,21 @@ module.exports = {
         throw new Error("Cannot Join Players Limit reach to maximum limit");
       // check if the user already exist in the team
       const exist = team.players_list.find(
-        (player) => player.user_id.toString() === user_id
+        (player) => player._id.toString() === user_id
       );
       if (exist) throw new Error("You have already in the team");
       //
-      if (team.leader_id.toString() === user_id)
+      if (team.leader._id.toString() === user_id)
         throw new Error("You are the leader of the team");
       //
       const alreadyRequested = team.request_list.find(
-        (player) => player.user_id.toString() === user_id
+        (player) => player._id.toString() === user_id
       );
       if (alreadyRequested)
         throw new Error("You are already requested to join the team");
 
-      if (team.isPrivate)
-        team.request_list.push({
-          user_id,
-        });
-      else
-        team.players_list.push({
-          user_id,
-        });
+      if (team.isPrivate) team.request_list.push(user_id);
+      else team.players_list.push(user_id);
 
       await team.save();
       res.status(201).send({ team });
@@ -167,7 +182,11 @@ module.exports = {
       if (!user_id || !team_id) throw new Error("Payload is not valid.");
 
       const user__id = user_id.toString();
-      const team = await Team.findById(team_id);
+      const team = await Team.findById(team_id)
+        .populate("leader")
+        .populate("co_leaders")
+        .populate("request_list")
+        .populate("players_list");
       if (!team) throw new Error("No team Found");
 
       // return team;
@@ -182,7 +201,7 @@ module.exports = {
       }
       // checking if the user already in the
       const exist = team.players_list.find(
-        (player) => player.user_id.toString() === user__id
+        (player) => player._id.toString() === user__id
       );
       if (exist) throw new Error("User is already in the Team...");
 
@@ -195,15 +214,13 @@ module.exports = {
 
       // removing the user from request list
       const index = team.request_list.findIndex(
-        (player) => player.user_id.toString() === user__id
+        (player) => player._id.toString() === user__id
       );
       if (index === -1) throw new Error("Don't have such request...");
       team.request_list.splice(index, 1);
 
       // adding the player to the list
-      team.players_list.push({
-        user_id: user__id,
-      });
+      team.players_list.push(user__id);
 
       await team.save();
 
@@ -220,7 +237,11 @@ module.exports = {
       const { team_id, user_id } = req.body;
       if (!user_id || !team_id) throw new Error("Payload is not valid.");
 
-      const team = await Team.findById(team_id);
+      const team = await Team.findById(team_id)
+        .populate("leader")
+        .populate("co_leaders")
+        .populate("request_list")
+        .populate("players_list");
       if (!team) throw new Error("Team not found");
 
       // if (!team.isLeader(req.user))
@@ -234,12 +255,12 @@ module.exports = {
         throw new Error("You are not authorize to update team..!");
 
       const exist = team.request_list.find(
-        (player) => player.user_id.toString() === user_id.toString()
+        (player) => player._id.toString() === user_id.toString()
       );
       if (!exist) throw new Error("User not found.");
 
       team.request_list = team.request_list.filter(
-        (player) => player.user_id.toString() !== user_id.toString()
+        (player) => player._id.toString() !== user_id.toString()
       );
 
       await team.save();
@@ -257,7 +278,11 @@ module.exports = {
       const { user_id, team_id } = req.body;
       if (!user_id || !team_id) throw new Error("Payload is not valid.");
 
-      const team = await Team.findById(team_id);
+      const team = await Team.findById(team_id)
+        .populate("leader")
+        .populate("co_leaders")
+        .populate("request_list")
+        .populate("players_list");
       if (!team) throw new Error("No team found");
 
       // if (!team.isLeader(req.user))
@@ -271,16 +296,16 @@ module.exports = {
         throw new Error("You are not authorize to update team..!");
 
       const exist = team.players_list.find(
-        (player) => player.user_id.toString() === user_id.toString()
+        (player) => player._id.toString() === user_id.toString()
       );
       if (!exist) throw new Error("No player found");
 
       team.players_list = team.players_list.filter(
-        (player) => player.user_id.toString() !== user_id.toString()
+        (player) => player._id.toString() !== user_id.toString()
       );
       // removing the player even if he is the co leader
       team.co_leaders = team.co_leaders.filter(
-        (player) => player.user_id.toString() !== user_id.toString()
+        (player) => player._id.toString() !== user_id.toString()
       );
 
       await team.save();
@@ -297,7 +322,11 @@ module.exports = {
       const { user_id, team_id } = req.body;
       if (!user_id || !team_id) throw new Error("Payload is not valid.");
 
-      const team = await Team.findById(team_id);
+      const team = await Team.findById(team_id)
+        .populate("leader")
+        .populate("co_leaders")
+        .populate("request_list")
+        .populate("players_list");
       if (!team) throw new Error("No team Found");
 
       // if (!team.isLeader(req.user))
@@ -311,12 +340,12 @@ module.exports = {
         throw new Error("You are not authorize to update team..!");
 
       const exist = team.players_list.find(
-        (player) => player.user_id.toString() === user_id.toString()
+        (player) => player._id.toString() === user_id.toString()
       );
       if (!exist) throw new Error("No player found.");
 
       const alreadyLeader = team.co_leaders.find(
-        (player) => player.user_id.toString() === user_id.toString()
+        (player) => player._id.toString() === user_id.toString()
       );
       if (alreadyLeader) throw new Error("Player is already a leader");
 
@@ -325,10 +354,7 @@ module.exports = {
       if (team.co_leaders.length >= max_numbers)
         throw new Error("Max Number of co leaders limit exceeds");
 
-      team.co_leaders.push({
-        user_id,
-        made_by: authenticUserId,
-      });
+      team.co_leaders.push(user_id);
 
       await team.save();
 
@@ -345,7 +371,11 @@ module.exports = {
       const { user_id, team_id } = req.body;
       if (!user_id || !team_id) throw new Error("Payload is not valid.");
 
-      const team = await Team.findById(team_id);
+      const team = await Team.findById(team_id)
+        .populate("leader")
+        .populate("co_leaders")
+        .populate("request_list")
+        .populate("players_list");
       if (!team) throw new Error("No Team found");
 
       // if (!team.isLeader(req.user))
@@ -359,12 +389,12 @@ module.exports = {
         throw new Error("You are not authorize to update team..!");
 
       const exist = team.co_leaders.find(
-        (player) => player.user_id.toString() === user_id.toString()
+        (player) => player._id.toString() === user_id.toString()
       );
       if (!exist) throw new Error("Player Is not a leader");
 
       team.co_leaders = team.co_leaders.filter(
-        (player) => player.user_id.toString() !== user_id.toString()
+        (player) => player._id.toString() !== user_id.toString()
       );
 
       await team.save();
@@ -383,23 +413,27 @@ module.exports = {
       if (!team_id) throw new Error("Payload is not valid.");
       const user_id = req.user._id.toString();
 
-      const team = await Team.findById(team_id);
+      const team = await Team.findById(team_id)
+        .populate("leader")
+        .populate("co_leaders")
+        .populate("request_list")
+        .populate("players_list");
       if (!team) throw new Error("No Team found");
 
-      if (user_id === team.leader_id.toString())
+      if (user_id === team.leader._id.toString())
         throw new Error("Leader cannot leave the team...");
 
       const exist = team.players_list.find(
-        (player) => player.user_id.toString() === user_id
+        (player) => player._id.toString() === user_id
       );
       if (!exist) throw new Error("Player not Found");
 
       team.players_list = team.players_list.filter(
-        (player) => player.user_id.toString() !== user_id
+        (player) => player._id.toString() !== user_id
       );
       // removing if the user is co loader also;
       team.co_leaders = team.co_leaders.filter(
-        (player) => player.user_id.toString() !== user_id
+        (player) => player._id.toString() !== user_id
       );
 
       await team.save();
@@ -414,7 +448,11 @@ module.exports = {
   // ------------------------------------
   async myTeams(req, res) {
     try {
-      const teams = await Team.find({ leader_id: req.user._id });
+      const teams = await Team.find({ leader: req.user._id })
+        .populate("leader")
+        .populate("co_leaders")
+        .populate("request_list")
+        .populate("players_list");
       res.status(200).send({ teams });
     } catch (error) {
       handleErrors(res, error);

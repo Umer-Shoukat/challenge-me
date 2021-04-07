@@ -45,11 +45,10 @@ module.exports = {
         );
       // todo:: make another check to see if the challenge type is team and creator is the admin/leader of the team
 
-      let challenge = new Challenge(req.body);
+      const challenge = new Challenge(req.body);
       challenge.creator_id = req.user._id;
       await challenge.save();
 
-      challenge = await challenge.mapChallenge();
       res.status(201).send({ challenge });
     } catch (error) {
       handleErrors(res, error);
@@ -60,10 +59,11 @@ module.exports = {
   // --------------------------------------------
   async getSingleChallenge(req, res) {
     try {
-      let challenge = await Challenge.findById(req.params.id);
+      const challenge = await Challenge.findById(req.params.id).populate(
+        "creator_id"
+      );
       if (!challenge) throw new Error("No CHallenge found...!");
 
-      challenge = await challenge.mapChallenge();
       res.status(200).send({ challenge });
     } catch (error) {
       handleErrors(res, error);
@@ -86,19 +86,6 @@ module.exports = {
         });
       }
 
-      // legacy code
-      // const count = await Challenge.countDocuments();
-      // let challenges = await Challenge.find()
-      //   .limit(parseInt(limit) * 1)
-      //   .skip((parseInt(page) - 1) * parseInt(limit))
-      //   .sort(sort)
-      //   .exec();
-
-      // const mapChallenges = await Promise.all(
-      //   challenges.map(async (challenge) => {
-      //     return await challenge.mapChallenge();
-      //   })
-      // );
       let challenges = await Challenge.paginate(
         {
           $or: [
@@ -170,7 +157,7 @@ module.exports = {
           "You must have a team to create a challenge for a team"
         );
 
-      let challenge = await Challenge.findById(id);
+      const challenge = await Challenge.findById(id);
       if (!challenge) throw new Error("Challenge not found");
 
       // check if the user is authorized to make changes
@@ -180,7 +167,6 @@ module.exports = {
 
       await challenge.save();
 
-      challenge = await challenge.mapChallenge();
       res.status(201).send({ challenge });
     } catch (error) {
       handleErrors(res, error);
@@ -191,14 +177,13 @@ module.exports = {
   // -----------------------------------------
   async deleteChallenge(req, res) {
     try {
-      let challenge = await Challenge.findById(req.body.id);
+      const challenge = await Challenge.findById(req.body.id);
       if (!challenge) throw new Error("No challenge Found");
 
       // checking if the user is authorized to delete the challenge
       challenge.isCreator(req.user);
       await challenge.remove();
 
-      challenge = await challenge.mapChallenge();
       res.status(201).send({ challenge });
     } catch (error) {
       handleErrors(res, error);
@@ -222,14 +207,13 @@ module.exports = {
       const validRules = rules.every((rule) => rulesCanChange.includes(rule));
       if (!validRules) throw new Error("Invalid Rules");
 
-      let challenge = await Challenge.findById(req.body.id);
+      const challenge = await Challenge.findById(req.body.id);
       if (!challenge) throw new Error("No challenge Found");
 
       challenge.isCreator(req.user);
       rules.forEach((rule) => (challenge.rules[rule] = req.body.rules[rule]));
 
       await challenge.save();
-      challenge = await challenge.mapChallenge();
       res.status(201).send({ challenge });
     } catch (error) {
       handleErrors(res, error);
@@ -242,7 +226,7 @@ module.exports = {
     try {
       // todo:: will validate it according to the rules of the game...
       const { id, team_id } = req.body;
-      let challenge = await Challenge.findById(id);
+      const challenge = await Challenge.findById(id);
       if (!challenge) throw new Error("No challenge found");
       const { challenger_id, is_private, type } = challenge;
       if (challenger_id) throw new Error("Someone has already challenged...");
@@ -287,7 +271,6 @@ module.exports = {
         }
       }
       await challenge.save();
-      challenge = await challenge.mapChallenge();
       res.status(201).send({ challenge });
     } catch (error) {
       handleErrors(res, error);
@@ -299,7 +282,7 @@ module.exports = {
   async acceptChallenge(req, res) {
     try {
       const { obj_id, id } = req.body;
-      let challenge = await Challenge.findById(id);
+      const challenge = await Challenge.findById(id);
       if (!challenge) throw new Error("No challenge found");
 
       // if the challenger already exist
@@ -334,7 +317,6 @@ module.exports = {
 
       challenge.challenge_requests = [];
       await challenge.save();
-      challenge = await challenge.mapChallenge();
       res.status(201).send({ challenge });
     } catch (error) {
       handleErrors(res, error);
@@ -346,7 +328,7 @@ module.exports = {
   async rejectChallenge(req, res) {
     try {
       const { obj_id, id } = req.body;
-      let challenge = await Challenge.findById(id);
+      const challenge = await Challenge.findById(id);
       if (!challenge) throw new Error("No Challenge Found");
       challenge.isCreator(req.user);
 
@@ -361,7 +343,6 @@ module.exports = {
         (request) => request._id.toString() !== obj_id.toString()
       );
       await challenge.save();
-      challenge = await challenge.mapChallenge();
       res.status(201).send({ challenge });
     } catch (error) {
       handleErrors(res, error);
@@ -374,7 +355,7 @@ module.exports = {
   async removeChallenger(req, res) {
     try {
       const { user_id, id } = req.body;
-      let challenge = await Challenge.findById(id);
+      const challenge = await Challenge.findById(id);
       if (!challenge) throw new Error("Challenge not found");
       challenge.isCreator(req.user);
       const { type, open_players_list } = challenge;
@@ -389,7 +370,6 @@ module.exports = {
         );
       }
       await challenge.save();
-      challenge = await challenge.mapChallenge();
       res.status(201).send({ challenge });
     } catch (error) {
       handleErrors(res, error);
@@ -401,12 +381,6 @@ module.exports = {
   async getMyChallenges(req, res) {
     try {
       let challenges = await Challenge.find({ creator_id: req.user._id });
-
-      challenges = await Promise.all(
-        challenges.map(async (challenge) => {
-          return await challenge.mapChallenge();
-        })
-      );
 
       res.status(200).send({ challenges });
     } catch (error) {

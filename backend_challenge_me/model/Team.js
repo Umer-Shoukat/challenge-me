@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const User = require("./User");
+const mongoosePaginate = require("mongoose-paginate-v2");
 
 const teamSchema = new mongoose.Schema(
   {
@@ -22,46 +22,14 @@ const teamSchema = new mongoose.Schema(
       type: Number,
       default: 8,
     },
-    leader_id: {
+    leader: {
       type: mongoose.Types.ObjectId,
       required: true,
+      ref: "User",
     },
-    co_leaders: [
-      {
-        user_id: {
-          type: mongoose.Types.ObjectId,
-        },
-        made_by: {
-          type: mongoose.Types.ObjectId,
-        },
-        created_at: {
-          type: Date,
-          default: new Date(),
-        },
-      },
-    ],
-    request_list: [
-      {
-        user_id: {
-          type: mongoose.Types.ObjectId,
-        },
-        request_at: {
-          type: Date,
-          default: new Date(),
-        },
-      },
-    ],
-    players_list: [
-      {
-        user_id: {
-          type: mongoose.Types.ObjectId,
-        },
-        joined_at: {
-          type: Date,
-          default: new Date(),
-        },
-      },
-    ],
+    co_leaders: [{ type: mongoose.Types.ObjectId, ref: "User" }],
+    request_list: [{ type: mongoose.Types.ObjectId, ref: "User" }],
+    players_list: [{ type: mongoose.Types.ObjectId, ref: "User" }],
     images: {
       image: {
         type: String,
@@ -111,7 +79,7 @@ const teamSchema = new mongoose.Schema(
 
 teamSchema.methods.isLeader = function ({ _id }) {
   const team = this.toObject();
-  if (team.leader_id.toString() !== _id.toString()) return false;
+  if (team.leader._id.toString() !== _id.toString()) return false;
   return true;
 };
 
@@ -122,11 +90,11 @@ teamSchema.methods.hasRightToChange = function (user, ruleType) {
   const rules = team.rules;
 
   // checking if the user is admin
-  if (team.leader_id.toString() === user_id) return user_id;
+  if (team.leader._id.toString() === user_id) return user_id;
 
   // else checking if the user is in the co_leader and has right to change something...
   let isCoLeader = team.co_leaders.find(
-    (player) => player.user_id.toString() === user_id
+    (player) => player._id.toString() === user_id
   );
   if (!isCoLeader) return false;
   if (!rules[ruleType]) return false;
@@ -135,32 +103,12 @@ teamSchema.methods.hasRightToChange = function (user, ruleType) {
   return user_id;
 };
 
-teamSchema.methods.mapTeamDetails = async function () {
-  const team = this.toObject();
-  const { co_leaders, request_list, players_list, leader_id } = team;
-  const leader = await User.findById(leader_id);
-  const coLeaders = await getUserDetails(co_leaders);
-  const requestLists = await getUserDetails(request_list);
-  const playersLists = await getUserDetails(players_list);
-  return {
-    ...team,
-    leader,
-    coLeaders,
-    requestLists,
-    playersLists,
-  };
-};
+teamSchema.pre("remove", async function (next) {
+  // TODO:: will do some cleanup
+  next();
+});
 
-// helper function
-async function getUserDetails(ids) {
-  const users = await User.find({
-    _id: {
-      $in: ids.map((user) => mongoose.Types.ObjectId(user.user_id)),
-    },
-  });
-
-  return users;
-}
+teamSchema.plugin(mongoosePaginate);
 
 const Team = mongoose.model("Team", teamSchema);
 

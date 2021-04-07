@@ -41,9 +41,11 @@ const challengeSchema = new mongoose.Schema(
     creator_id: {
       type: mongoose.Types.ObjectId,
       required: true,
+      ref: "User",
     },
     creator_team_id: {
       type: mongoose.Types.ObjectId,
+      ref: "Team",
     },
     result_status: {
       type: String,
@@ -57,9 +59,11 @@ const challengeSchema = new mongoose.Schema(
     },
     challenger_id: {
       type: mongoose.Types.ObjectId,
+      ref: "User",
     },
     challenger_team_id: {
       type: mongoose.Types.ObjectId,
+      ref: "Team",
     },
     tags: [
       {
@@ -108,13 +112,6 @@ const challengeSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
-challengeSchema.statics.mapChallenges = async function (challenges) {
-  try {
-  } catch (err) {
-    throw new Error(err);
-  }
-};
 
 challengeSchema.methods.mapChallenge = async function () {
   const challenge = this.toObject();
