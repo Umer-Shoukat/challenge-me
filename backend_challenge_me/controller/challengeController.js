@@ -46,7 +46,7 @@ module.exports = {
       // todo:: make another check to see if the challenge type is team and creator is the admin/leader of the team
 
       const challenge = new Challenge(req.body);
-      challenge.creator_id = req.user._id;
+      challenge.creator = req.user._id;
       await challenge.save();
 
       res.status(201).send({ challenge });
@@ -59,9 +59,12 @@ module.exports = {
   // --------------------------------------------
   async getSingleChallenge(req, res) {
     try {
-      const challenge = await Challenge.findById(req.params.id).populate(
-        "creator_id"
-      );
+      const challenge = await Challenge.findById(req.params.id)
+        .populate("creator")
+        .populate("challenger_team")
+        .populate("user_requests")
+        .populate("team_requests")
+        .populate("open_players_list");
       if (!challenge) throw new Error("No CHallenge found...!");
 
       res.status(200).send({ challenge });
@@ -125,7 +128,7 @@ module.exports = {
         "is_physical",
         "start_time",
         "end_time",
-        "creator_team_id",
+        "creator_team",
       ];
 
       const validInputs = fieldsForUpdates.every((field) =>
@@ -138,7 +141,7 @@ module.exports = {
         is_physical,
         location,
         type,
-        creator_team_id,
+        creator_team,
       } = req.body;
 
       const validTime = moment(new Date(start_time)).isAfter(
@@ -152,12 +155,17 @@ module.exports = {
           "location is required if the challenge require physical location"
         );
       // if challenge type is team and user don't provide the team id
-      if (type === "team" && !creator_team_id)
+      if (type === "team" && !creator_team)
         throw new Error(
           "You must have a team to create a challenge for a team"
         );
 
-      const challenge = await Challenge.findById(id);
+      const challenge = await Challenge.findById(id)
+        .populate("creator")
+        .populate("challenger_team")
+        .populate("user_requests")
+        .populate("team_requests")
+        .populate("open_players_list");
       if (!challenge) throw new Error("Challenge not found");
 
       // check if the user is authorized to make changes
@@ -177,7 +185,12 @@ module.exports = {
   // -----------------------------------------
   async deleteChallenge(req, res) {
     try {
-      const challenge = await Challenge.findById(req.body.id);
+      const challenge = await Challenge.findById(req.body.id)
+        .populate("creator")
+        .populate("challenger_team")
+        .populate("user_requests")
+        .populate("team_requests")
+        .populate("open_players_list");
       if (!challenge) throw new Error("No challenge Found");
 
       // checking if the user is authorized to delete the challenge
@@ -207,7 +220,12 @@ module.exports = {
       const validRules = rules.every((rule) => rulesCanChange.includes(rule));
       if (!validRules) throw new Error("Invalid Rules");
 
-      const challenge = await Challenge.findById(req.body.id);
+      const challenge = await Challenge.findById(req.body.id)
+        .populate("creator")
+        .populate("challenger_team")
+        .populate("user_requests")
+        .populate("team_requests")
+        .populate("open_players_list");
       if (!challenge) throw new Error("No challenge Found");
 
       challenge.isCreator(req.user);
@@ -226,10 +244,18 @@ module.exports = {
     try {
       // todo:: will validate it according to the rules of the game...
       const { id, team_id } = req.body;
-      const challenge = await Challenge.findById(id);
+      const challenge = await Challenge.findById(id)
+        .populate("creator")
+        .populate("challenger_team")
+        .populate("user_requests")
+        .populate("team_requests")
+        .populate("open_players_list");
       if (!challenge) throw new Error("No challenge found");
-      const { challenger_id, is_private, type } = challenge;
-      if (challenger_id) throw new Error("Someone has already challenged...");
+      const { challenger, is_private, type } = challenge;
+      if (challenger) throw new Error("Someone has already challenged...");
+
+      // checking if the user already challenged;
+      challenge.hasRequested(req.user._id);
 
       // checking the challenge type
       if (type === "team") {
@@ -238,36 +264,26 @@ module.exports = {
             "You must provide the team if the challenge type is TEAM"
           );
         if (!is_private) {
-          challenge.challenger_team_id = team_id;
-          challenge.challenger_id = req.user._id;
+          challenge.challenger_team = team_id;
+          challenge.challenger = req.user._id;
         } else {
-          challenge.hasRequested(req.user._id);
-          challenge.challenge_requests.push({
-            challenger_team_id: team_id,
-            challenger_id: req.user._id,
-          });
+          challenge.user_requests.push(req.user._id);
+          challenge.team_requests.push(team_id);
         }
       } else if (type === "solo") {
-        if (!is_private) challenge.challenger_id = req.user._id;
+        if (!is_private) challenge.challenger = req.user._id;
         else {
-          challenge.hasRequested(req.user._id);
-          challenge.challenge_requests.push({
-            challenger_id: req.user._id,
-          });
+          challenge.user_requests.push(req.user._id);
         }
       } else {
         // if the challenge type is open;
         const exist = challenge.open_players_list.find(
-          (c) => c.user_id.toString() === req.user._id.toString()
+          (c) => c._id.toString() === req.user._id.toString()
         );
         if (exist) throw new Error("You are already in the players list");
-        if (!is_private)
-          challenge.open_players_list.push({ user_id: req.user._id });
+        if (!is_private) challenge.open_players_list.push(req.user._id);
         else {
-          challenge.hasRequested(req.user._id);
-          challenge.challenge_requests.push({
-            challenger_id: req.user._id,
-          });
+          challenge.user_requests.push(req.user._id);
         }
       }
       await challenge.save();
@@ -281,12 +297,17 @@ module.exports = {
   // -------------------------------------------------
   async acceptChallenge(req, res) {
     try {
-      const { obj_id, id } = req.body;
-      const challenge = await Challenge.findById(id);
+      const { team_id, user_id, id } = req.body;
+      const challenge = await Challenge.findById(id)
+        .populate("creator")
+        .populate("challenger_team")
+        .populate("user_requests")
+        .populate("team_requests")
+        .populate("open_players_list");
       if (!challenge) throw new Error("No challenge found");
 
       // if the challenger already exist
-      if (challenge.challenger_id) {
+      if (challenge.challenger) {
         challenge.challenge_requests = [];
         await challenge.save();
         throw new Error("Challenger ALready Exist");
@@ -294,28 +315,42 @@ module.exports = {
 
       challenge.isCreator(req.user);
 
-      const { type, challenge_requests, open_players_list } = challenge;
+      const {
+        type,
+        user_requests,
+        team_requests,
+        open_players_list,
+      } = challenge;
 
-      const obj = challenge_requests.find(
-        (request) => request._id.toString() === obj_id.toString()
+      // checking if the team and user exist in the challenge
+      const userExist = user_requests.find(
+        (user) => user._id.toString() === user_id.toString()
       );
-      if (!obj) throw new Error("Challenger not exist");
+      let teamExist;
+      if (type === "team")
+        teamExist = team_requests.find(
+          (team) => team._id.toString() === team_id.toString()
+        );
+
+      if (!userExist && !teamExist)
+        throw new Error("No request found with such challenger");
 
       if (type === "team") {
-        challenge.challenger_id = obj.challenger_id;
-        challenge.challenger_team_id = obj.challenger_team_id;
+        challenge.challenger = user_id;
+        challenge.challenger_team_ = team_id;
       } else if (type === "solo") {
-        challenge.challenger_id = obj.challenger_id;
+        challenge.challenger = user_id;
       } else {
         const exist = open_players_list.find(
-          (user) => user.user_id.toString() === obj.challenger_id.toString()
+          (user) => user._id.toString() === user_id.toString()
         );
         if (exist) throw new Error("User Already exist in the open team...");
 
-        challenge.open_players_list.push({ user_id: obj.challenger_id });
+        challenge.open_players_list.push(user_id);
       }
 
-      challenge.challenge_requests = [];
+      challenge.user_requests = [];
+      challenge.team_requests = [];
       await challenge.save();
       res.status(201).send({ challenge });
     } catch (error) {
@@ -327,21 +362,39 @@ module.exports = {
   // -------------------------------------------------
   async rejectChallenge(req, res) {
     try {
-      const { obj_id, id } = req.body;
-      const challenge = await Challenge.findById(id);
+      const { team_id, user_id, id } = req.body;
+      const challenge = await Challenge.findById(id)
+        .populate("creator")
+        .populate("challenger_team")
+        .populate("user_requests")
+        .populate("team_requests")
+        .populate("open_players_list");
       if (!challenge) throw new Error("No Challenge Found");
       challenge.isCreator(req.user);
 
-      const { challenge_requests } = challenge;
+      const { user_requests, team_requests, type } = challenge;
 
-      const obj = challenge_requests.find(
-        (request) => request._id.toString() === obj_id.toString()
+      const userExist = user_requests.find(
+        (user) => user._id.toString() === user_id.toString()
       );
-      if (!obj) throw new Error("No Challenger Found");
+      let teamExist;
+      if (type === "team")
+        teamExist = team_requests.find(
+          (team) => team._id.toString() === team_id.toString()
+        );
 
-      challenge.challenge_requests = challenge_requests.filter(
-        (request) => request._id.toString() !== obj_id.toString()
+      if (!userExist && !teamExist)
+        throw new Error("No request found with such challenger");
+
+      challenge.user_requests.filter(
+        (user) => user._id.toString() !== user_id.toString()
       );
+
+      if (type === "team")
+        challenge.team_requests.filter(
+          (team) => team._id.toString() !== team_id.toString()
+        );
+
       await challenge.save();
       res.status(201).send({ challenge });
     } catch (error) {
@@ -355,18 +408,27 @@ module.exports = {
   async removeChallenger(req, res) {
     try {
       const { user_id, id } = req.body;
-      const challenge = await Challenge.findById(id);
+      const challenge = await Challenge.findById(id)
+        .populate("creator")
+        .populate("challenger_team")
+        .populate("user_requests")
+        .populate("team_requests")
+        .populate("open_players_list");
       if (!challenge) throw new Error("Challenge not found");
       challenge.isCreator(req.user);
       const { type, open_players_list } = challenge;
       if (type === "team") {
-        delete challenge.challenger_id;
-        delete challenge.challenger_team_id;
+        delete challenge.challenger;
+        delete challenge.challenger;
       } else if (type === "solo") {
-        delete challenge.challenger_id;
+        delete challenge.challenger;
       } else {
+        if (!user_id)
+          throw new Error(
+            "You must provide the user id to remove the challenger"
+          );
         challenge.open_players_list = open_players_list.filter(
-          (player) => player.user_id.toString() !== user_id.toString()
+          (player) => player._id.toString() !== user_id.toString()
         );
       }
       await challenge.save();
@@ -380,7 +442,12 @@ module.exports = {
   // ---------------------------------------------------
   async getMyChallenges(req, res) {
     try {
-      let challenges = await Challenge.find({ creator_id: req.user._id });
+      let challenges = await Challenge.find({ creator: req.user._id })
+        .populate("creator")
+        .populate("challenger_team")
+        .populate("user_requests")
+        .populate("team_requests")
+        .populate("open_players_list");
 
       res.status(200).send({ challenges });
     } catch (error) {
