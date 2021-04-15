@@ -1,28 +1,36 @@
-export default ({ $axios }, inject) => {
+export default (app) => {
   // Create a custom axios instance
 
-  let token = ''
+  const $axios = app.$axios
+  // Set baseURL to something different
+  $axios.setBaseURL('http://localhost:3000/api/v1')
 
-  if (process.browser) {
-    if (localStorage.getItem('token')) {
-      token = `Bearer ${localStorage.getItem('token')}`
-    }
-  }
-  const api = $axios.create()
-
-  api.setHeader('Authorization', token)
-
-  api.onRequest((config) => {
+  $axios.onRequest((config) => {
     return config
   })
 
-  api.onResponse((response) => response)
+  $axios.onResponse((response) => {
+    if (response.data.msg) {
+      app.$notify({
+        group: 'foo',
+        title: 'Success',
+        text: response.data.msg,
+      })
+      console.log(response.data.msg)
+    }
+    return response
+  })
 
-  api.onError((err) => err)
-
-  // Set baseURL to something different
-  api.setBaseURL('http://localhost:3000/api/v1/')
+  $axios.onError((err) => {
+    app.$notify({
+      group: 'foo',
+      title: 'Error',
+      text: err?.response?.data?.error ?? 'Something Went Wrong...!!!',
+      type: 'error',
+    })
+    return err
+  })
 
   // Inject to context as $api
-  inject('$api', api)
+  // inject('api', api)
 }

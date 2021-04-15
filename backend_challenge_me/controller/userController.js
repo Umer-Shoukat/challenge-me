@@ -42,7 +42,9 @@ module.exports = {
   // --------------------------------------------------
   async getMe(req, res) {
     try {
-      res.send(req.user);
+      res.send({
+        user: req.user,
+      });
     } catch (error) {
       handleErrors(res, error);
     }
