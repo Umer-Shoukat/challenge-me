@@ -16,7 +16,6 @@ export default (app) => {
         title: 'Success',
         text: response.data.msg,
       })
-      console.log(response.data.msg)
     }
     return response
   })

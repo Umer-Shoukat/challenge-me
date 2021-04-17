@@ -1,7 +1,7 @@
 <template>
   <v-card :loading="loading">
-    <v-card-text>
-      <h1>Login</h1>
+    <v-card-title>Login</v-card-title>
+    <v-card-text @keypress.enter="login">
       <v-text-field
         label="Enter Email"
         :rules="rules"
@@ -15,7 +15,16 @@
         hide-details="auto"
         v-model="form.password"
         type="password"
+        class="mt-5"
       ></v-text-field>
+
+      <p class="d-flex align-items-center justify-content-between mt-3">
+        <nuxt-link to="/forgot-password">Forgot Password</nuxt-link>
+
+        <nuxt-link to="/register"
+          >Don't have an account? Create One...</nuxt-link
+        >
+      </p>
 
       <v-btn
         depressed

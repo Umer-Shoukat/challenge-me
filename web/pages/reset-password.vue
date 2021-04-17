@@ -1,43 +1,22 @@
 <template>
   <v-card :loading="loading">
-    <v-card-title>Register</v-card-title>
-    <v-card-text @keypress.enter="register">
-      <v-text-field
-        label="Enter Username"
-        :rules="rules"
-        hide-details="auto"
-        v-model="form.name"
-      ></v-text-field>
-
-      <v-text-field
-        label="Enter Email"
-        :rules="rules"
-        hide-details="auto"
-        v-model="form.email"
-        class="mt-5"
-      ></v-text-field>
-
+    <v-card-title>Reset Password</v-card-title>
+    <v-card-text @keypress.enter="resetPassword">
       <v-text-field
         label="Password"
         :rules="rules"
         hide-details="auto"
         v-model="form.password"
         type="password"
-        class="mt-5"
       ></v-text-field>
 
       <v-text-field
         label="Confirm Password"
         :rules="rules"
         hide-details="auto"
-        v-model="form.consfirmPassword"
+        v-model="form.confirmPassword"
         type="password"
-        class="mt-5"
       ></v-text-field>
-
-      <p class="text-right mt-3">
-        <nuxt-link to="/login">Already have an account? Sign in...</nuxt-link>
-      </p>
 
       <v-card-actions>
         <v-btn
@@ -46,9 +25,9 @@
           class="mt-5"
           :disabled="loading"
           :loading="loading"
-          @click="register"
+          @click="resetPassword"
         >
-          Register
+          Reset Password
         </v-btn>
       </v-card-actions>
     </v-card-text>
@@ -57,16 +36,14 @@
 
 <script>
 export default {
-  name: 'login',
+  name: 'reset-password',
   layout: 'auth-layout',
   data() {
     return {
       form: {
-        email: '',
         password: '',
-        consfirmPassword: '',
-        name: '',
-        dob: '11/09/1998',
+        confirmPassword: '',
+        token: '',
       },
       loading: false,
     }
@@ -77,18 +54,28 @@ export default {
     },
   },
   methods: {
-    async register() {
+    async resetPassword() {
+      const { password, confirmPassword } = this.form
+      if (password !== confirmPassword)
+        return this.$notify({
+          group: 'foo',
+          title: 'Error',
+          text: 'Password do not matched',
+          type: 'error',
+        })
       try {
         this.loading = true
-        await this.$axios.post('register', this.form)
-        await this.$auth.loginWith('local', { data: this.form })
-        this.$router.push('/')
+        await this.$axios.post('reset-password', this.form)
+        this.$router.push(`/login`)
         this.loading = false
       } catch (err) {
-        console.log(err)
         this.loading = false
+        console.log(err)
       }
     },
+  },
+  created() {
+    this.form.token = this.$route.query.token
   },
 }
 </script>

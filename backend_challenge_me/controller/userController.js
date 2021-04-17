@@ -187,7 +187,7 @@ module.exports = {
           handleErrors(res, err);
         } else {
           res.status(200).send({
-            msg: "Otp send to your email account pleas check to verify",
+            msg: "Otp send to your email account please check to verify",
           });
         }
       });
