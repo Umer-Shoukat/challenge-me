@@ -1,8 +1,19 @@
 const express = require("express");
 const router = new express.Router();
 
+// multer
+// const multer = require("multer");
+// const upload = multer({
+//   storage: multer.memoryStorage(),
+//   limits: {
+//     // no larger than 5mb.
+//     fileSize: 5 * 1024 * 1024,
+//   },
+// });
+
 // middleware
 const authMiddleWare = require("../middleware/auth");
+const getFileMiddleWare = require("../middleware/multiparty");
 
 // controller
 const {
@@ -18,6 +29,7 @@ const {
   sendOtp,
   verifyOtp,
   resetPassword,
+  uploadAvatar,
 } = require("../controller/userController");
 
 // public routes
@@ -234,5 +246,24 @@ router.post("/verify-otp", verifyOtp);
  *         description: Username and password don't match
  */
 router.post("/reset-password", resetPassword);
+
+/**
+ * @swagger
+ * /upload-avatar:
+ *   post:
+ *     tags:
+ *       - Users
+ *     name: Upload Profile Image
+ *     summary: Upload Profile Image
+ *     responses:
+ *       200:
+ *         description: User found and logged in successfully
+ *       401:
+ *         description: Bad username, not found in db
+ *       403:
+ *         description: Username and password don't match
+ */
+
+router.post("/upload-avatar", authMiddleWare, getFileMiddleWare, uploadAvatar);
 
 module.exports = router;

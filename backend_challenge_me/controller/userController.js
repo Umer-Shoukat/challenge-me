@@ -1,7 +1,10 @@
+const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const User = require("../model/User");
 const transporter = require("../mail/mail");
 const { handleErrors } = require("../helpers/helpers");
+const s3sUpload = require("../helpers/s3Upload");
+// const { bucket } = require("../firebase/firebase-admin");
 
 module.exports = {
   // ------------------------------------------
@@ -232,6 +235,25 @@ module.exports = {
       user.tokens = [];
       await user.save();
       res.status(201).send({ msg: "Password rest successfully. Please login" });
+    } catch (error) {
+      handleErrors(res, error);
+    }
+  },
+  // ------------------------------------------
+  // --------UPLOAD AVATAR----------------
+  // ------------------------------------------
+  async uploadAvatar(req, res) {
+    try {
+      const file = req.locals.files.avatar[0];
+      const name = req.user.name.replace(" ", "-");
+      const filePath = `profile/${name}`;
+      const link = await s3sUpload(file, filePath);
+      const user = req.user;
+      user.avatar = link;
+      await user.save();
+      res.send({
+        user,
+      });
     } catch (error) {
       handleErrors(res, error);
     }
