@@ -7,9 +7,9 @@
       <span class="white--text headline capitilize" v-if="!$auth.user.avatar">{{
         $auth.user.name | avatarName
       }}</span>
-      <img v-else src="https://cdn.vuetifyjs.com/images/john.jpg" alt="John" />
+      <img v-else :src="$auth.user.avatar" :alt="$auth.user.name" />
     </v-avatar>
-    <v-toolbar-title v-text="$auth.user.name" />
+    <v-toolbar-title class="capitilize" v-text="$auth.user.name" />
 
     <v-spacer></v-spacer>
 

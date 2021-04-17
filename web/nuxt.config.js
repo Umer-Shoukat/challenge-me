@@ -19,6 +19,7 @@ export default {
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [
     '~/plugins/axios',
+    '~/plugins/globalComponents',
     '~/plugins/filter',
     { src: '~plugins/vue-notifications', ssr: false },
   ],

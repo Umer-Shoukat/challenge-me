@@ -41,6 +41,11 @@ export default {
           title: 'Inspire',
           to: '/inspire',
         },
+        {
+          icon: 'mdi-account',
+          title: 'Profile',
+          to: '/user/profile',
+        },
       ],
     }
   },
