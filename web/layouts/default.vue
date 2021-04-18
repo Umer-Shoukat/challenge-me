@@ -3,7 +3,7 @@
     <side-bar />
     <Header />
     <v-main>
-      <v-container>
+      <v-container class="pb-10">
         <nuxt />
       </v-container>
     </v-main>

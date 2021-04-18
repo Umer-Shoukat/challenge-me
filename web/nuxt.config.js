@@ -40,6 +40,7 @@ export default {
     // https://go.nuxtjs.dev/pwa
     '@nuxtjs/pwa',
     '@nuxtjs/auth-next',
+    '@nuxtjs/dayjs',
   ],
   auth: {
     strategies: {
@@ -48,6 +49,7 @@ export default {
           property: 'token',
           // required: true,
           type: 'Bearer',
+          maxAge: 60 * 60 * 24 * 30,
         },
         user: {
           property: 'user',
@@ -56,6 +58,7 @@ export default {
         endpoints: {
           login: { url: '/login', method: 'post' },
           logout: { url: '/logout', method: 'get' },
+          logoutAll: { url: '/logout-all', method: 'get' },
           user: { url: '/me', method: 'get' },
         },
       },

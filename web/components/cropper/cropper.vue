@@ -26,6 +26,7 @@
           :style="{ backgroundImage: 'url(' + image.src + ')' }"
           class="image-background"
         ></div>
+
         <cropper
           class="cropper"
           background-class="cropper-background"
@@ -34,18 +35,18 @@
             handlers: {},
             movable: true,
             scalable: true,
-            aspectRatio: 1,
+            aspectRatio: aspectRatio,
           }"
           :resize-image="{
             adjustStencil: false,
           }"
           :stencil-size="{
-            width: 250,
-            height: 250,
+            width: stencilHeight,
+            height: stencilHeight,
           }"
           :auto-zoom="true"
           image-restriction="stencil"
-          stencil-component="circle-stencil"
+          :stencil-component="rounded ? 'circle-stencil' : 'rectangle-stencil'"
           ref="cropper"
           @ready="ready"
           @error="error"
@@ -79,6 +80,29 @@ export default {
   props: {
     uploadEndPoint: String,
     fieldName: String,
+    stencilHeight: {
+      type: Number,
+      default: 250,
+    },
+    stencilWidth: {
+      type: Number,
+      default: 250,
+    },
+    aspectRatio: {
+      type: Number,
+      default: 1,
+    },
+    emitFile: {
+      type: Boolean,
+      default: false,
+    },
+    imageFile: {
+      type: Object,
+    },
+    rounded: {
+      type: Boolean,
+      default: true,
+    },
   },
   components: {
     Cropper,
@@ -97,7 +121,7 @@ export default {
     ...modalModule.mapState(['activeModal']),
   },
   methods: {
-    ...modalModule.mapMutations(['CLOSE_MODAL']),
+    ...modalModule.mapMutations(['CLOSE_MODAL', 'SET_CROPPER_PAYLOAD']),
     ready() {
       console.log('ready')
     },
@@ -116,22 +140,31 @@ export default {
     dragLeave() {
       this.dragging = false
     },
+    loadImage(event) {
+      const { files } = event.target
+      if (files && files[0]) {
+        this.addFileToCropper(files[0])
+      }
+    },
     crop() {
       const { canvas } = this.$refs.cropper.getResult()
       canvas.toBlob(async (blob) => {
-        const fd = new FormData()
-        fd.append(this.fieldName, blob)
-        this.loading = true
-        const resp = await this.$axios.post(this.uploadEndPoint, fd, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        })
-        console.log('IMAGE UPLOADED SUCCESSFULLY')
-        this.loading = false
-
-        if (resp.data.user) {
-          this.$auth.setUser(resp.data.user)
+        if (this.emitFile) {
+          this.SET_CROPPER_PAYLOAD({ blob, src: this.image.src })
+        } else {
+          const fd = new FormData()
+          fd.append(this.fieldName, blob)
+          this.loading = true
+          const resp = await this.$axios.post(this.uploadEndPoint, fd, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          })
+          console.log('IMAGE UPLOADED SUCCESSFULLY')
+          this.loading = false
+          if (resp.data.user) {
+            this.$auth.setUser(resp.data.user)
+          }
         }
         if (this.activeModal) {
           this.CLOSE_MODAL()
@@ -159,12 +192,7 @@ export default {
       }
       reader.readAsDataURL(file)
     },
-    loadImage(event) {
-      const { files } = event.target
-      if (files && files[0]) {
-        this.addFileToCropper(files[0])
-      }
-    },
+
     getMimeType(file, fallback = null) {
       const byteArray = new Uint8Array(file).subarray(0, 4)
       let header = ''
@@ -186,6 +214,9 @@ export default {
           return fallback
       }
     },
+  },
+  created() {
+    if (this.imageFile) this.addFileToCropper(this.imageFile)
   },
 }
 </script>

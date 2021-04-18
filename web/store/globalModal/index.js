@@ -15,6 +15,7 @@ export default {
     activeModal: false,
     component: null,
     ...defaultOptions(),
+    cropperPayload: null,
   }),
   getters: {},
   mutations: {
@@ -36,6 +37,12 @@ export default {
       state.activeModal = false
       state.component = null
       state = { ...state, ...defaultOptions() }
+    },
+    SET_CROPPER_PAYLOAD(state, payload) {
+      state.cropperPayload = payload
+    },
+    CLEAR_CROPPER_PAYLOAD(state) {
+      state.cropperPayload = null
     },
   },
   actions: {},

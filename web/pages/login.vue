@@ -14,8 +14,10 @@
         :rules="rules"
         hide-details="auto"
         v-model="form.password"
-        type="password"
         class="mt-5"
+        :type="showPass ? 'text' : 'password'"
+        :append-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
+        @click:append="showPass = !showPass"
       ></v-text-field>
 
       <p class="d-flex align-items-center justify-content-between mt-3">
@@ -49,6 +51,7 @@ export default {
         email: '',
         password: '',
       },
+      showPass: false,
       loading: false,
     }
   },

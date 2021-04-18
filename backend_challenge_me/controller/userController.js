@@ -92,7 +92,7 @@ module.exports = {
         res.status(200).send({ user, token });
         return;
       }
-      res.status(200).send(user);
+      res.status(200).send({ user });
     } catch (error) {
       handleErrors(res, error);
     }
@@ -103,7 +103,7 @@ module.exports = {
   async deleteMe(req, res) {
     try {
       await req.user.remove();
-      res.status(200).send(req.user);
+      res.status(200).send({ user: req.user });
     } catch (error) {
       handleErrors(res, error);
     }
