@@ -1,6 +1,9 @@
 const express = require("express");
-const authMiddleware = require("../middleware/auth");
 const router = new express.Router();
+
+// middleware
+const authMiddleware = require("../middleware/auth");
+const getFileMiddleWare = require("../middleware/multiparty");
 
 const {
   createTeam,
@@ -17,6 +20,7 @@ const {
   leaveTeam,
   myTeams,
   updateTeamRules,
+  saveTeamImages,
 } = require("../controller/teamController");
 
 /**
@@ -274,5 +278,28 @@ router.post("/team-leave", authMiddleware, leaveTeam);
  *         description: Username and password don't match
  */
 router.post("/team-update-rules", authMiddleware, updateTeamRules);
+
+/**
+ * @swagger
+ * /save-team-images:
+ *   post:
+ *     tags:
+ *       - Team
+ *     name: save team images
+ *     summary: SAve bot team images background and team
+ *     responses:
+ *       200:
+ *         description: User found and logged in successfully
+ *       401:
+ *         description: Bad username, not found in db
+ *       403:
+ *         description: Username and password don't match
+ */
+router.post(
+  "/save-team-images",
+  authMiddleware,
+  getFileMiddleWare,
+  saveTeamImages
+);
 
 module.exports = router;

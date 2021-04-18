@@ -1,16 +1,6 @@
 const express = require("express");
 const router = new express.Router();
 
-// multer
-// const multer = require("multer");
-// const upload = multer({
-//   storage: multer.memoryStorage(),
-//   limits: {
-//     // no larger than 5mb.
-//     fileSize: 5 * 1024 * 1024,
-//   },
-// });
-
 // middleware
 const authMiddleWare = require("../middleware/auth");
 const getFileMiddleWare = require("../middleware/multiparty");

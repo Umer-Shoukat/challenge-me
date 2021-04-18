@@ -1,5 +1,6 @@
 const Team = require("../model/Team");
 const { handleErrors } = require("../helpers/helpers");
+const s3Upload = require("../helpers/s3Upload");
 
 module.exports = {
   // ------------------------------------
@@ -14,6 +15,42 @@ module.exports = {
       });
       await team.save();
       res.status(201).send({ team });
+    } catch (error) {
+      handleErrors(res, error);
+    }
+  },
+  async saveTeamImages(req, res) {
+    try {
+      let imageLink = "";
+      let backgroundImageLink = "";
+
+      const { fields, files } = req.locals;
+      const team_id = fields.team_id[0];
+
+      const team = await Team.findById(team_id);
+      if (!team) throw new Error("No team found...!");
+
+      let teamName = team.name.split(" ").join("-");
+      if (files.image) {
+        const image = files.image[0];
+        const path = `team-profile/${teamName}`;
+        imageLink = await s3Upload(image, path);
+      }
+
+      if (files.backgroundImage) {
+        const backgroundImage = files.backgroundImage[0];
+        const path = `team-background/${teamName}`;
+        backgroundImageLink = await s3Upload(backgroundImage, path);
+      }
+
+      team.images.image = imageLink;
+      team.images.backgroundImage = backgroundImageLink;
+
+      await team.save();
+
+      res.send({
+        team,
+      });
     } catch (error) {
       handleErrors(res, error);
     }
