@@ -109,6 +109,7 @@ teamSchema.pre("remove", async function (next) {
 });
 
 teamSchema.plugin(mongoosePaginate);
+teamSchema.index({ name: "text", description: "text" });
 
 const Team = mongoose.model("Team", teamSchema);
 

@@ -97,7 +97,7 @@ export default {
       default: false,
     },
     imageFile: {
-      type: Object,
+      require: false,
     },
     rounded: {
       type: Boolean,

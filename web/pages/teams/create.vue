@@ -100,37 +100,37 @@
       <v-card-text>
         <v-sheet class="pa-5">
           <v-switch
-            v-model="rules.co_leader_accept_request"
+            v-model="form.rules.co_leader_accept_request"
             inset
             label="Co-leaders can accept the team joining request for other players"
           ></v-switch>
 
           <v-switch
-            v-model="rules.co_leader_reject_request"
+            v-model="form.rules.co_leader_reject_request"
             inset
             label="Co-leaders can reject the team joining request for other players"
           ></v-switch>
 
           <v-switch
-            v-model="rules.co_leader_make_co_leader"
+            v-model="form.rules.co_leader_make_co_leader"
             inset
             label="Co-leaders can make other team players to  co-loeader"
           ></v-switch>
 
           <v-switch
-            v-model="rules.co_leader_remove_co_leader"
+            v-model="form.rules.co_leader_remove_co_leader"
             inset
             label="Co-leaders can remove other co-leader"
           ></v-switch>
 
           <v-switch
-            v-model="rules.co_leader_remove_player"
+            v-model="form.rules.co_leader_remove_player"
             inset
             label="Co-leaders can remove team player from the team"
           ></v-switch>
 
           <v-switch
-            v-model="rules.co_leader_update_team"
+            v-model="form.rules.co_leader_update_team"
             inset
             label="Co-leaders can make changes to the team or update the team"
           ></v-switch>
@@ -139,7 +139,7 @@
         <v-select
           :items="maxCoLeaders"
           filled
-          v-model="rules.max_co_leader"
+          v-model="form.rules.max_co_leader"
           label="Maximum number of co-loeaders"
         ></v-select>
       </v-card-text>
@@ -169,16 +169,17 @@ export default {
         description: '',
         isPrivate: true,
         players_limit: 8,
+        rules: {
+          co_leader_accept_request: false,
+          co_leader_reject_request: false,
+          co_leader_make_co_leader: false,
+          co_leader_remove_co_leader: false,
+          co_leader_remove_player: false,
+          co_leader_update_team: false,
+          max_co_leader: 0,
+        },
       },
-      rules: {
-        co_leader_accept_request: false,
-        co_leader_reject_request: false,
-        co_leader_make_co_leader: false,
-        co_leader_remove_co_leader: false,
-        co_leader_remove_player: false,
-        co_leader_update_team: false,
-        max_co_leader: 0,
-      },
+
       images: {
         image: null,
         backgroundImage: null,
@@ -237,7 +238,6 @@ export default {
           rounded,
         },
       })
-      console.log('addFileToCropper', { imageType, file })
     },
     setCroppedImages({ blob, src }) {
       if (this.imageType === 'backgroundImage') {
@@ -254,7 +254,26 @@ export default {
       try {
         this.loading = true
 
+        const teamResp = await this.$axios.post('team', this.form)
+        const { team } = teamResp.data
+
+        const { image, backgroundImage } = this.images
+        if (image || backgroundImage) {
+          const fd = new FormData()
+
+          fd.append('team_id', team._id)
+          if (image) fd.append('image', image)
+          if (backgroundImage) fd.append('backgroundImage', backgroundImage)
+
+          await this.$axios.post('save-team-images', fd, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          })
+        }
+
         this.loading = false
+        this.$router.push('/teams')
       } catch (err) {
         this.loading = false
         console.log(err)

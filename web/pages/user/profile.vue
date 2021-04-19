@@ -93,7 +93,9 @@
         </loader>
 
         <div class="d-flex-align-items-center">
-          <v-btn to="/team/create" color="info" class="mr-3">Create Team</v-btn>
+          <v-btn to="/teams/create" color="info" class="mr-3"
+            >Create Team</v-btn
+          >
           <v-btn to="/challenge/create" disabled color="secondary" class="mr-3"
             >Create Challenge</v-btn
           >
