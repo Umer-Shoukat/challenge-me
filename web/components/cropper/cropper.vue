@@ -149,18 +149,21 @@ export default {
     crop() {
       const { canvas } = this.$refs.cropper.getResult()
       canvas.toBlob(async (blob) => {
+        const file = new File([blob], `image-file.${blob.type.split('/')[1]}`, {
+          lastModified: new Date().getTime(),
+          type: blob.type,
+        })
         if (this.emitFile) {
           this.SET_CROPPER_PAYLOAD({ blob, src: this.image.src })
         } else {
           const fd = new FormData()
-          fd.append(this.fieldName, blob)
+          fd.append(this.fieldName, file)
           this.loading = true
           const resp = await this.$axios.post(this.uploadEndPoint, fd, {
             headers: {
               'Content-Type': 'multipart/form-data',
             },
           })
-          console.log('IMAGE UPLOADED SUCCESSFULLY')
           this.loading = false
           if (resp.data.user) {
             this.$auth.setUser(resp.data.user)

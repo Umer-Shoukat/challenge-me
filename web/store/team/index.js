@@ -1,8 +1,20 @@
+const defaultPagination = () => ({
+  limit: 10,
+  totalPages: 1,
+  page: 1,
+  pagingCounter: 1,
+  hasPrevPage: false,
+  hasNextPage: false,
+  prevPage: null,
+  nextPage: null,
+})
+
 export default {
   state: () => ({
     loading: false,
     teams: [],
-    pagination: {},
+    pagination: defaultPagination(),
+    searchQuery: '',
   }),
   getters: {},
   mutations: {
@@ -18,12 +30,19 @@ export default {
         ...payload,
       }
     },
+    SET_SEARCH(state, payload) {
+      state.searchQuery = payload
+      state.pagination = defaultPagination()
+    },
   },
   actions: {
-    async FETCH_TEAMS({ commit }, payload) {
+    async FETCH_TEAMS({ commit, state }, page = 1) {
       try {
         commit('SET_TEAM_LOADING', true)
-        const resp = await this.$axios.get('teams')
+        const { searchQuery } = state
+        const resp = await this.$axios.get(
+          `teams?limit=3&page=${page}&query=${searchQuery ?? ''}`
+        )
         const { teams } = resp.data
         commit('SET_TEAMS', teams)
 

@@ -11,6 +11,9 @@
   </div>
 
   <div v-else>
+    <div class="text-right mb-2">
+      <v-btn to="/teams/create" color="info" class="mr-3">Create Team</v-btn>
+    </div>
     <div class="search-team">
       <v-text-field
         label="Search Team"
@@ -26,7 +29,11 @@
       </v-col>
     </v-row>
 
-    <v-pagination v-model="page" :length="15" :total-visible="7"></v-pagination>
+    <v-pagination
+      v-model="page"
+      :length="pagination.totalPages"
+      :total-visible="6"
+    ></v-pagination>
   </div>
 </template>
 
@@ -35,15 +42,24 @@ import { createNamespacedHelpers } from 'vuex'
 const { mapState, mapMutations, mapActions } = createNamespacedHelpers('team')
 
 import TeamCard from '~/components/cards/team-card'
+import debounce from 'lodash/debounce'
 export default {
   name: 'teams',
   components: { TeamCard },
   data: () => ({
     page: 1,
-    search: '',
+    debounce: null,
   }),
   computed: {
-    ...mapState(['teams', 'loading', 'pagination']),
+    ...mapState(['teams', 'loading', 'pagination', 'searchQuery']),
+    search: {
+      set(val) {
+        return this.SET_SEARCH(val)
+      },
+      get() {
+        return this.searchQuery
+      },
+    },
     attrs() {
       return {
         class: 'mb-6',
@@ -54,15 +70,28 @@ export default {
   },
   methods: {
     ...mapActions(['FETCH_TEAMS']),
+    ...mapMutations(['SET_SEARCH']),
   },
   async asyncData({ store }) {
     await store.dispatch('team/FETCH_TEAMS')
     return true
   },
-  mounted() {},
-  created() {
-    // this.FETCH_TEAMS()
+  watch: {
+    search(val, old) {
+      if (val !== old) {
+        this.debounce()
+      }
+    },
+    page(val) {
+      this.FETCH_TEAMS(val)
+    },
   },
+  mounted() {
+    this.debounce = debounce(() => {
+      this.FETCH_TEAMS()
+    }, 1000)
+  },
+  created() {},
 }
 </script>
 

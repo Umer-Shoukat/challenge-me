@@ -92,15 +92,6 @@
           </ul>
         </loader>
 
-        <div class="d-flex-align-items-center">
-          <v-btn to="/teams/create" color="info" class="mr-3"
-            >Create Team</v-btn
-          >
-          <v-btn to="/challenge/create" disabled color="secondary" class="mr-3"
-            >Create Challenge</v-btn
-          >
-        </div>
-
         <!-- <v-btn @click="logoutAll" color="error">Logout from all devices</v-btn> -->
       </v-card-text>
     </v-card>
