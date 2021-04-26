@@ -21,6 +21,23 @@ export default {
   computed: {
     ...appModule.mapState(['loading']),
   },
+  methods: {
+    ...appModule.mapMutations(['SET_WINDOW_SIZE']),
+    windowSizeHandler() {
+      this.SET_WINDOW_SIZE({
+        height: window.innerHeight,
+        width: window.innerWidth,
+      })
+    },
+  },
+  mounted() {
+    this.windowSizeHandler()
+  },
+  created() {
+    if (process.browser) {
+      window.addEventListener('resize', this.windowSizeHandler, false)
+    }
+  },
 }
 </script>
 

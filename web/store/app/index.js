@@ -6,6 +6,8 @@ export default {
     clipped: false,
     // loading
     loading: false,
+    windowWidth: null,
+    windowHeight: null,
   }),
   getters: {},
   mutations: {
@@ -14,6 +16,10 @@ export default {
     },
     SET_GLOBAL_LOADING(state, payload) {
       state.loading = payload
+    },
+    SET_WINDOW_SIZE(state, { height, width }) {
+      state.windowWidth = width
+      state.windowHeight = height
     },
   },
   actions: {},

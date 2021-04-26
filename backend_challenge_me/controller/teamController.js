@@ -95,14 +95,15 @@ module.exports = {
   // ------------------------------------
   async updateTeam(req, res) {
     try {
-      const id = req.body.id;
-      delete req.body.id;
+      const id = req.body._id;
+      delete req.body._id;
       const updates = Object.keys(req.body);
       const fieldsCanUpdate = [
         "name",
         "description",
         "isPrivate",
         "players_limit",
+        "rules",
       ];
       const validInput = updates.every((update) =>
         fieldsCanUpdate.includes(update)
@@ -126,6 +127,7 @@ module.exports = {
       await team.save();
       res.status(201).send({ team });
     } catch (error) {
+      console.log(error);
       handleErrors(res, error);
     }
   },
@@ -175,7 +177,7 @@ module.exports = {
     try {
       const user_id = req.user._id.toString();
 
-      const team = await Team.findById(req.body.id)
+      const team = await Team.findById(req.body.team_id)
         .populate("leader")
         .populate("co_leaders")
         .populate("request_list")

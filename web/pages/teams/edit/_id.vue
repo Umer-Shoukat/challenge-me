@@ -150,7 +150,7 @@
         :loading="loading"
         :disabled="loading || !validInputs"
         @click="createTeam"
-        >Create Team</v-btn
+        >Update Team</v-btn
       >
     </div>
   </div>
@@ -158,11 +158,12 @@
 
 <script>
 export default {
-  name: 'create-team',
+  name: 'edit-team',
   data() {
     return {
-      loading: false,
+      loading: true,
       form: {
+        _id: '',
         name: '',
         description: '',
         isPrivate: true,
@@ -250,9 +251,11 @@ export default {
     },
     async createTeam() {
       try {
+        console.log('hello world')
         this.loading = true
 
-        const teamResp = await this.$axios.post('team', this.form)
+        const teamResp = await this.$axios.patch('team', this.form)
+        console.log(teamResp)
         const { team } = teamResp.data
 
         const { image, backgroundImage } = this.images
@@ -271,10 +274,34 @@ export default {
         }
 
         this.loading = false
-        this.$router.push('/teams')
+        this.$router.push(`/teams/${this.$route.params.id}`)
       } catch (err) {
         this.loading = false
         console.log(err)
+      }
+    },
+    async fetchTeam() {
+      try {
+        const resp = await this.$axios.get(`team/${this.$route.params.id}`)
+        const { team } = resp.data
+        const { images } = team
+
+        for (const key in this.form) {
+          if (Object.hasOwnProperty.call(this.form, key)) {
+            this.form[key] = team[key]
+          }
+        }
+
+        if (team.leader._id !== this.$auth.user._id) {
+          return this.$router.push('/teams')
+        }
+
+        this.imagesSrc.image = images.image
+        this.imagesSrc.backgroundImage = images.image
+        this.loading = false
+      } catch (err) {
+        console.log(err)
+        this.loading = false
       }
     },
   },
@@ -284,6 +311,7 @@ export default {
         this.setCroppedImages(state.globalModal.cropperPayload)
       }
     })
+    this.fetchTeam()
   },
 }
 </script>
