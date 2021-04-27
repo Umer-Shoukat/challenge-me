@@ -6,6 +6,7 @@ import store from "./store";
 
 import service from "./axios/axios";
 import notifier from "./plugins/notifier";
+import vueSocket from "./plugins/socketio";
 
 import "./scss/main.scss";
 import "animate.css";
@@ -19,6 +20,7 @@ const app = createApp(App)
 
 app.use(service);
 app.use(notifier);
+app.use(vueSocket);
 
 app.component("loader", Loader);
 app.component("AuthenticatedLayout", AuthenticatedLayout);

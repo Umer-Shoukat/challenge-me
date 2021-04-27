@@ -1,7 +1,6 @@
 import colors from 'vuetify/es5/util/colors'
 
 export default {
-  // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
     titleTemplate: '%s - web',
     title: 'web',
@@ -12,32 +11,21 @@ export default {
     ],
     link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],
   },
-
-  // Global CSS: https://go.nuxtjs.dev/config-css
   css: ['@/assets/scss/main.scss'],
 
-  // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [
     '~/plugins/axios',
     '~/plugins/globalComponents',
     '~/plugins/filter',
+    { src: '~/plugins/socketio', ssr: true },
     { src: '~plugins/vue-notifications', ssr: false },
   ],
 
-  // Auto import components: https://go.nuxtjs.dev/config-components
   components: true,
 
-  // Modules for dev and build (recommended): https://go.nuxtjs.dev/config-modules
-  buildModules: [
-    // https://go.nuxtjs.dev/vuetify
-    '@nuxtjs/vuetify',
-  ],
-
-  // Modules: https://go.nuxtjs.dev/config-modules
+  buildModules: ['@nuxtjs/vuetify'],
   modules: [
-    // https://go.nuxtjs.dev/axios
     '@nuxtjs/axios',
-    // https://go.nuxtjs.dev/pwa
     '@nuxtjs/pwa',
     '@nuxtjs/auth-next',
     '@nuxtjs/dayjs',
@@ -63,9 +51,6 @@ export default {
       },
     },
   },
-
-  // Axios module configuration: https://go.nuxtjs.dev/config-axios
-  // axios: {},
 
   // PWA module configuration: https://go.nuxtjs.dev/pwa
   pwa: {
@@ -96,6 +81,5 @@ export default {
     port: 8080,
   },
 
-  // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {},
 }

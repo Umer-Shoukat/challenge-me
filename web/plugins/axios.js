@@ -1,9 +1,11 @@
+import { apiEndPoint } from '~/config'
+
 export default (app) => {
   // Create a custom axios instance
 
   const $axios = app.$axios
   // Set baseURL to something different
-  $axios.setBaseURL('http://localhost:3000/api/v1')
+  $axios.setBaseURL(apiEndPoint)
 
   $axios.onRequest((config) => {
     return config
