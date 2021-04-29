@@ -10,6 +10,13 @@ export default {
       { hid: 'description', name: 'description', content: '' },
     ],
     link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],
+    // script: [
+    //   {
+    //     src:
+    //       'https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js',
+    //     crossorigin: 'anonymous',
+    //   },
+    // ],
   },
   css: ['@/assets/scss/main.scss'],
 

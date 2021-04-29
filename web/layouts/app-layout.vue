@@ -37,8 +37,6 @@ export default {
     if (process.browser) {
       window.addEventListener('resize', this.windowSizeHandler, false)
     }
-
-    this.$socket.emit('user')
   },
 }
 </script>

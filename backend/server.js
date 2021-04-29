@@ -14,8 +14,17 @@ const server = app.listen(port, () =>
 const io = socketio(server, {
   cors: {
     origin: ["http://localhost:8080", "*"],
-    methods: ["GET", "POST"],
-    credentials: false,
+    // methods: ["GET", "POST"],
+    // credentials: false,
+    handlePreflightRequest: (req, res) => {
+      res.writeHead(200, {
+        "Access-Control-Allow-Origin": "http://localhost:8080",
+        "Access-Control-Allow-Methods": "GET,POST",
+        "Access-Control-Allow-Headers": "my-custom-header",
+        "Access-Control-Allow-Credentials": true,
+      });
+      res.end();
+    },
   },
 });
 
