@@ -45,7 +45,7 @@ export default {
         commit('SET_TEAM_LOADING', true)
         const { searchQuery } = state
         const resp = await this.$axios.get(
-          `teams?limit=3&page=${page}&query=${searchQuery ?? ''}`
+          `teams?limit=10&page=${page}&query=${searchQuery ?? ''}`
         )
         const { teams } = resp.data
         commit('SET_TEAMS', teams)

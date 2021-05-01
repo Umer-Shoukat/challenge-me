@@ -1,4 +1,3 @@
-const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const User = require("../model/User");
 const transporter = require("../mail/mail");

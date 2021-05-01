@@ -53,6 +53,10 @@
         <loader :loading="loading" height="300px">
           <ul class="collection">
             <li class="collection-item">
+              <span class="text">ID:</span>
+              <strong>{{ $auth.user._id }}</strong>
+            </li>
+            <li class="collection-item">
               <span class="text">Name:</span>
               <strong>{{ $auth.user.name }}</strong>
             </li>

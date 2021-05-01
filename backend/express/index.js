@@ -7,7 +7,12 @@ const app = require("../server").app;
 const { apiVersion, swaggerOptions } = require("../constants/constants");
 
 // api-routes
-const { userRoutes, teamRoutes, challengeRoutes } = require("../routes/routes");
+const {
+  userRoutes,
+  teamRoutes,
+  challengeRoutes,
+  seedRoutes,
+} = require("../routes/routes");
 
 app.get("/", (req, res) => {
   res.send(`<h1>Will render the admin panel for the app...!</h1>`);
@@ -18,6 +23,7 @@ app.use(express.json());
 app.use(apiVersion, userRoutes);
 app.use(apiVersion, teamRoutes);
 app.use(apiVersion, challengeRoutes);
+app.use(apiVersion, seedRoutes);
 
 // generate the swagger api documentations
 const specs = swaggerJsdoc(swaggerOptions);

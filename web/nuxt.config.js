@@ -24,8 +24,9 @@ export default {
     '~/plugins/axios',
     '~/plugins/globalComponents',
     '~/plugins/filter',
-    { src: '~/plugins/socketio', ssr: true },
+    { src: '~/plugins/socketio', ssr: false },
     { src: '~plugins/vue-notifications', ssr: false },
+    { src: '~plugins/perfect-scroll-bar', ssr: false },
   ],
 
   components: true,

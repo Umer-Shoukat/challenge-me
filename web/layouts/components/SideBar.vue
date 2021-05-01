@@ -7,13 +7,7 @@
     app
   >
     <v-list>
-      <v-list-item
-        v-for="(item, i) in items"
-        :key="i"
-        :to="item.to"
-        router
-        exact
-      >
+      <v-list-item v-for="(item, i) in items" :key="i" :to="item.to" router>
         <v-list-item-action>
           <v-icon>{{ item.icon }}</v-icon>
         </v-list-item-action>
@@ -36,11 +30,6 @@ export default {
           title: 'Welcome',
           to: '/',
         },
-        // {
-        //   icon: 'mdi-chart-bubble',
-        //   title: 'Inspire',
-        //   to: '/inspire',
-        // },
         {
           icon: 'mdi-group',
           title: 'Teams',
@@ -50,6 +39,11 @@ export default {
           icon: 'mdi-account',
           title: 'Profile',
           to: '/user/profile',
+        },
+        {
+          icon: 'mdi-chat',
+          title: 'Chats',
+          to: '/chats',
         },
       ],
     }

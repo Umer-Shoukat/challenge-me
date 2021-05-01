@@ -1,5 +1,5 @@
 <template>
-  <v-avatar :size="size + 'px'" color="dark">
+  <v-avatar :size="size + 'px'" :color="bgColor">
     <v-img v-if="src" :lazy-src="lazyImage" :src="src" :height="size" contain>
       <template v-slot:placeholder>
         <v-row class="fill-height ma-0" align="center" justify="center">
@@ -21,6 +21,7 @@
 </template>
 
 <script>
+import { getRandomNumber, getRandomColors } from '~/helpers'
 export default {
   name: 'avatar',
   props: {
@@ -45,6 +46,15 @@ export default {
       default: '1',
     },
   },
+  computed: {
+    colors() {
+      return getRandomColors(200)
+    },
+    bgColor() {
+      return this.colors[getRandomNumber(0, this.colors.length - 1)]
+    },
+  },
+  created() {},
 }
 </script>
 
