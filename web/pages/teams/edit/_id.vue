@@ -284,7 +284,7 @@ export default {
       try {
         const resp = await this.$axios.get(`team/${this.$route.params.id}`)
         const { team } = resp.data
-        const { images } = team
+        const { background_url, image_url } = team
 
         for (const key in this.form) {
           if (Object.hasOwnProperty.call(this.form, key)) {
@@ -296,8 +296,8 @@ export default {
           return this.$router.push('/teams')
         }
 
-        this.imagesSrc.image = images.image
-        this.imagesSrc.backgroundImage = images.image
+        this.imagesSrc.image = image_url
+        this.imagesSrc.backgroundImage = background_url
         this.loading = false
       } catch (err) {
         console.log(err)

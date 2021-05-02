@@ -276,7 +276,9 @@
 
     <v-card class="my-5" v-if="isLeader">
       <v-card-title>Team Rules</v-card-title>
-      <v-card-text> hello </v-card-text>
+      <v-card-text>
+        TODO:: will ad rules here for leader of the team
+      </v-card-text>
     </v-card>
   </loader>
 </template>
@@ -291,14 +293,12 @@ export default {
   computed: {
     ...mapState(['loading', 'team']),
     backgroundImage() {
-      const { backgroundImage } = this.team.images
-      return backgroundImage
-        ? backgroundImage
-        : imagesPlaceholder.teamBackground
+      const { background_url } = this.team
+      return background_url ? background_url : imagesPlaceholder.teamBackground
     },
     teamImage() {
-      const { image } = this.team.images
-      return image ? image : imagesPlaceholder.teamProfile
+      const { image_url } = this.team
+      return image_url ? image_url : imagesPlaceholder.teamProfile
     },
     hasJoined() {
       const { players_list } = this.team

@@ -1,9 +1,6 @@
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2");
 
-const User = require("./User");
-const Team = require("./Team");
-
 const challengeSchema = new mongoose.Schema(
   {
     name: {

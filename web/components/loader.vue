@@ -1,6 +1,6 @@
 <template>
   <div :style="defaultStyle" :class="{ 'loader--center': center }">
-    <div v-show="!loading">
+    <div v-show="!loading" class="h-100">
       <slot />
     </div>
     <div v-if="loading && overlay">

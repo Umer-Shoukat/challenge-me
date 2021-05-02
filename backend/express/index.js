@@ -12,6 +12,7 @@ const {
   teamRoutes,
   challengeRoutes,
   seedRoutes,
+  chatRoomRoutes,
 } = require("../routes/routes");
 
 app.get("/", (req, res) => {
@@ -24,6 +25,7 @@ app.use(apiVersion, userRoutes);
 app.use(apiVersion, teamRoutes);
 app.use(apiVersion, challengeRoutes);
 app.use(apiVersion, seedRoutes);
+app.use(apiVersion, chatRoomRoutes);
 
 // generate the swagger api documentations
 const specs = swaggerJsdoc(swaggerOptions);

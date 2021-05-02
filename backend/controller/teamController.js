@@ -1,6 +1,11 @@
+// modals
 const Team = require("../model/Team");
+// helpers
 const { handleErrors } = require("../helpers/helpers");
 const s3Upload = require("../helpers/s3Upload");
+
+// modals
+const ChatRoom = require("../model/ChatRoom");
 
 module.exports = {
   // ------------------------------------
@@ -14,6 +19,16 @@ module.exports = {
         leader,
       });
       await team.save();
+
+      const room = new ChatRoom({
+        room_id: team._id,
+        room_type: "team_chat",
+        team: team._id,
+        members: [req.user._id],
+      });
+
+      await room.save();
+
       res.status(201).send({ team });
     } catch (error) {
       handleErrors(res, error);
@@ -35,16 +50,16 @@ module.exports = {
         const image = files.image[0];
         const path = `team-profile/${teamName}`;
         imageLink = await s3Upload(image, path);
+        team.image_url = imageLink;
       }
 
       if (files.backgroundImage) {
         const backgroundImage = files.backgroundImage[0];
         const path = `team-background/${teamName}`;
         backgroundImageLink = await s3Upload(backgroundImage, path);
-      }
 
-      team.images.image = imageLink;
-      team.images.backgroundImage = backgroundImageLink;
+        team.background_url = backgroundImageLink;
+      }
 
       await team.save();
 
@@ -204,7 +219,10 @@ module.exports = {
         throw new Error("You are already requested to join the team");
 
       if (team.isPrivate) team.request_list.push(user_id);
-      else team.players_list.push(user_id);
+      else {
+        team.players_list.push(user_id);
+        await team.addToRoom(user_id);
+      }
 
       await team.save();
       res.status(201).send({ team });
@@ -260,6 +278,7 @@ module.exports = {
 
       // adding the player to the list
       team.players_list.push(user__id);
+      await team.addToRoom(user__id);
 
       await team.save();
 

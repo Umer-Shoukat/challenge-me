@@ -12,7 +12,7 @@
     </v-img>
 
     <span
-      class="white--text headline capitilize"
+      class="white--text headline uppercase"
       :style="`font-size: ${nameSize}rem !important`"
       v-else
       >{{ alt | avatarName }}</span
@@ -45,12 +45,17 @@ export default {
       type: [String, Number],
       default: '1',
     },
+    color: {
+      type: String,
+      default: '',
+    },
   },
   computed: {
     colors() {
       return getRandomColors(200)
     },
     bgColor() {
+      if (this.color) return this.color
       return this.colors[getRandomNumber(0, this.colors.length - 1)]
     },
   },

@@ -9,17 +9,13 @@
         <v-img
           height="200"
           :lazy-src="placeholderImage"
-          :src="
-            team.images.backgroundImage
-              ? team.images.backgroundImage
-              : placeholderImage
-          "
+          :src="team.background_url ? team.background_url : placeholderImage"
         ></v-img>
 
         <v-avatar size="75px" color="accent" class="avatar-image">
           <v-img
-            v-if="team.images.image"
-            :src="team.images.image ? team.images.image : placeholderImage"
+            v-if="team.image_url"
+            :src="team.image_url ? team.image_url : placeholderImage"
             :lazy-src="placeholderImage"
             aspect-ratio="1"
             round

@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2");
 
+const ChatRoom = require("./ChatRoom");
+
 const teamSchema = new mongoose.Schema(
   {
     name: {
@@ -27,19 +29,18 @@ const teamSchema = new mongoose.Schema(
       required: true,
       ref: "User",
     },
+    image_url: {
+      type: String,
+      default: "",
+    },
+    background_url: {
+      type: String,
+      default: "",
+    },
     co_leaders: [{ type: mongoose.Types.ObjectId, ref: "User" }],
     request_list: [{ type: mongoose.Types.ObjectId, ref: "User" }],
     players_list: [{ type: mongoose.Types.ObjectId, ref: "User" }],
-    images: {
-      image: {
-        type: String,
-        default: "",
-      },
-      backgroundImage: {
-        type: String,
-        default: "",
-      },
-    },
+
     rules: {
       co_leader_accept_request: {
         type: Boolean,
@@ -101,6 +102,19 @@ teamSchema.methods.hasRightToChange = function (user, ruleType) {
 
   // only if the user in co_leader list and has right to change
   return user_id;
+};
+
+teamSchema.methods.addToRoom = async function (user_id) {
+  const { _id } = this.toObject();
+  user_id = user_id.toString();
+
+  const room = await ChatRoom.findOne({ room_id: _id });
+  if (!room) throw new Error("Room not found...!!!");
+
+  room.members.push(user_id);
+
+  await room.save();
+  return true;
 };
 
 teamSchema.pre("remove", async function (next) {
