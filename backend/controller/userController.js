@@ -57,9 +57,10 @@ module.exports = {
   async getUserDetail(req, res) {
     try {
       const { id } = req.params;
-      const user = await User.findById(id);
+      const user = await User.findById(id).populate("teams");
       if (!user) throw new Error("User not found");
-      res.send({ user });
+
+      res.send({ user, teams: user.teams });
     } catch (error) {
       console.log(error);
       handleErrors(res, error);

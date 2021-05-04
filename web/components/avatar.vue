@@ -1,23 +1,26 @@
 <template>
-  <v-avatar :size="size + 'px'" :color="bgColor">
-    <v-img v-if="src" :lazy-src="lazyImage" :src="src" :height="size" contain>
-      <template v-slot:placeholder>
-        <v-row class="fill-height ma-0" align="center" justify="center">
-          <v-progress-circular
-            indeterminate
-            color="grey lighten-5"
-          ></v-progress-circular>
-        </v-row>
-      </template>
-    </v-img>
+  <div class="relative">
+    <v-avatar :size="size + 'px'" :color="bgColor">
+      <v-img v-if="src" :lazy-src="lazyImage" :src="src" :height="size" contain>
+        <template v-slot:placeholder>
+          <v-row class="fill-height ma-0" align="center" justify="center">
+            <v-progress-circular
+              indeterminate
+              color="grey lighten-5"
+            ></v-progress-circular>
+          </v-row>
+        </template>
+      </v-img>
 
-    <span
-      class="white--text headline uppercase"
-      :style="`font-size: ${nameSize}rem !important`"
-      v-else
-      >{{ alt | avatarName }}</span
-    >
-  </v-avatar>
+      <span
+        class="white--text headline uppercase"
+        :style="`font-size: ${nameSize}rem !important`"
+        v-else
+        >{{ alt | avatarName }}</span
+      >
+    </v-avatar>
+    <div class="active success" v-if="active"></div>
+  </div>
 </template>
 
 <script>
@@ -49,6 +52,10 @@ export default {
       type: String,
       default: '',
     },
+    active: {
+      type: Boolean,
+      default: false,
+    },
   },
   computed: {
     colors() {
@@ -63,4 +70,15 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.active {
+  position: absolute;
+  bottom: 0;
+  height: 12px;
+  width: 12px;
+  border-radius: 50%;
+  right: 0;
+  border: 2px solid #333;
+  border-color: #333 !important;
+}
+</style>

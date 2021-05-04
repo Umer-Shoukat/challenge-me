@@ -8,6 +8,7 @@ const authMiddleWare = require("../middleware/auth");
 const {
   getSingleChatroom,
   getChatRooms,
+  checkRoom,
 } = require("../controller/chatRoomController");
 
 /**
@@ -46,7 +47,22 @@ router.get("/chat-room/:id", authMiddleWare, getSingleChatroom);
  */
 router.get("/chat-rooms", authMiddleWare, getChatRooms);
 
-// fetch chat room members
+/**
+ * @swagger
+ * /chat-rooms/check-room:
+ *   get:
+ *     tags:
+ *       - ChatRoom
+ *     name: Check for the room
+ *     summary: GET all chatrooms for the logged in user
+ *     responses:
+ *       200:
+ *         description: User found and logged in successfully
+ *       401:
+ *         description: Bad username, not found in db
+ *       403:
+ *         description: Username and password don't match
+ */
+router.post("/chat-rooms/check-room", authMiddleWare, checkRoom);
 
-// fetch chat room messages
 module.exports = router;

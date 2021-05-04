@@ -38,6 +38,13 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    active: {
+      type: Boolean,
+      default: false,
+    },
+    last_active: {
+      type: Date,
+    },
     otp_code: {
       type: String,
       default: 0,
@@ -100,6 +107,12 @@ userSchema.pre("save", async function (next) {
     user.password = await bcrypt.hash(user.password, 8);
 
   next();
+});
+
+userSchema.virtual("teams", {
+  ref: "Team",
+  localField: "_id",
+  foreignField: "leader",
 });
 
 const User = mongoose.model("User", userSchema);

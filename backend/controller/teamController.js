@@ -366,6 +366,7 @@ module.exports = {
         (player) => player._id.toString() !== user_id.toString()
       );
 
+      await team.removeFromRoom(user_id.toString());
       await team.save();
       res.status(201).send({ team });
     } catch (error) {
@@ -494,6 +495,7 @@ module.exports = {
         (player) => player._id.toString() !== user_id
       );
 
+      await team.removeFromRoom(user_id);
       await team.save();
 
       res.status(201).send({ team });

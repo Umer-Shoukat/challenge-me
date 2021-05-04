@@ -111,9 +111,27 @@ teamSchema.methods.addToRoom = async function (user_id) {
   const room = await ChatRoom.findOne({ room_id: _id });
   if (!room) throw new Error("Room not found...!!!");
 
+  const exist = room.members.find((id) => id.toString() === user_id.toString());
+
   room.members.push(user_id);
+  await room.save();
+
+  return true;
+};
+
+teamSchema.methods.removeFromRoom = async function (user_id) {
+  const { _id } = this.toObject();
+  user_id = user_id.toString();
+
+  const room = await ChatRoom.findOne({ room_id: _id });
+  if (!room) throw new Error("Room not found...!!!");
+
+  room.members = room.members.filter(
+    (id) => id.toString() !== user_id.toString()
+  );
 
   await room.save();
+
   return true;
 };
 

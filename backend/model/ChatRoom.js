@@ -23,6 +23,10 @@ const chatRoomSchema = new mongoose.Schema({
       ref: "User",
     },
   ],
+  last_msg: {
+    type: mongoose.Types.ObjectId,
+    ref: "Message",
+  },
 });
 
 const ChatRoom = mongoose.model("ChatRoom", chatRoomSchema);

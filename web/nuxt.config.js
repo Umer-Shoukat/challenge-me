@@ -1,4 +1,5 @@
 import colors from 'vuetify/es5/util/colors'
+import io from './plugins/nuxt-socket-io'
 
 export default {
   head: {
@@ -11,11 +12,6 @@ export default {
     ],
     link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],
     // script: [
-    //   {
-    //     src:
-    //       'https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js',
-    //     crossorigin: 'anonymous',
-    //   },
     // ],
   },
   css: ['@/assets/scss/main.scss'],
@@ -24,7 +20,7 @@ export default {
     '~/plugins/axios',
     '~/plugins/globalComponents',
     '~/plugins/filter',
-    { src: '~/plugins/socketio', ssr: false },
+    // { src: '~/plugins/socketio', ssr: false },
     { src: '~plugins/vue-notifications', ssr: false },
     { src: '~plugins/perfect-scroll-bar', ssr: false },
   ],
@@ -37,7 +33,14 @@ export default {
     '@nuxtjs/pwa',
     '@nuxtjs/auth-next',
     '@nuxtjs/dayjs',
+    'nuxt-socket-io',
   ],
+  // socket io
+  io,
+  // dayjs
+  dayjs: {
+    plugins: ['utc', 'timezone', 'localizedFormat'],
+  },
   auth: {
     strategies: {
       local: {

@@ -5,34 +5,12 @@
 
       <v-card-text>
         <div class="image-container">
-          <v-avatar color="red" size="250px">
-            <v-img
-              v-if="$auth.user.avatar"
-              :src="$auth.user.avatar"
-              :lazy-src="$auth.user.avatar"
-              aspect-ratio="1"
-              round
-              class="grey lighten-2"
-              max-height="250px"
-              max-width="250px"
-            >
-              <template v-slot:placeholder>
-                <v-row class="fill-height ma-0" align="center" justify="center">
-                  <v-progress-circular
-                    indeterminate
-                    color="grey lighten-5"
-                  ></v-progress-circular>
-                </v-row>
-              </template>
-            </v-img>
-
-            <span
-              class="white--text headline capitilize"
-              style="font-size: 4.5rem !important"
-              v-else
-              >{{ $auth.user.name | avatarName }}</span
-            >
-          </v-avatar>
+          <avatar
+            size="250"
+            :src="$auth.user.avatar"
+            :alt="$auth.user.name"
+            nameSize="4.5"
+          />
 
           <!-- place holder image -->
           <v-btn

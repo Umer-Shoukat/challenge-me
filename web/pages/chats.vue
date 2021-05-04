@@ -16,6 +16,7 @@
               </v-list-item-avatar>
               <v-list-item-content>
                 <v-list-item-title v-text="channel.title" />
+                <v-list-item-subtitle v-text="channel.message" />
               </v-list-item-content>
             </v-list-item>
           </v-list>
@@ -24,8 +25,7 @@
         <v-card>
           <v-card-text class="h-100 p-0">
             <nuxt-child v-if="$route.params.id" />
-
-            <div class="center-center" v-else>
+            <div class="center-center" v-if="!$route.params.id">
               <h1>Totally empty</h1>
             </div>
           </v-card-text>
@@ -62,7 +62,7 @@ export default {
 .chat-container {
   display: grid;
   grid-gap: 1rem;
-  grid-template-columns: 30% 70%;
+  grid-template-columns: minmax(150px, 300px) 1fr;
   height: calc(100vh - 130px);
 
   &.is-empty {

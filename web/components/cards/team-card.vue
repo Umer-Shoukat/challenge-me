@@ -12,30 +12,14 @@
           :src="team.background_url ? team.background_url : placeholderImage"
         ></v-img>
 
-        <v-avatar size="75px" color="accent" class="avatar-image">
-          <v-img
-            v-if="team.image_url"
-            :src="team.image_url ? team.image_url : placeholderImage"
-            :lazy-src="placeholderImage"
-            aspect-ratio="1"
-            round
-            class="grey lighten-2"
-            max-height="75px"
-            max-width="75px"
-          >
-            <template v-slot:placeholder>
-              <v-row class="fill-height ma-0" align="center" justify="center">
-                <v-progress-circular
-                  indeterminate
-                  color="grey lighten-5"
-                ></v-progress-circular>
-              </v-row>
-            </template>
-          </v-img>
-          <span class="white--text headline capitilize" v-else>{{
-            team.name | avatarName
-          }}</span>
-        </v-avatar>
+        <avatar
+          size="75"
+          color="accent"
+          class="avatar-image"
+          :src="team.image_url"
+          :alt="team.name"
+          nameSize="2"
+        />
       </div>
 
       <v-card-title class="mt-10">{{ team.name }}</v-card-title>

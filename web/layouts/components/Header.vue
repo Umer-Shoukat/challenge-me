@@ -3,12 +3,14 @@
     <v-app-bar-nav-icon
       @click.stop="$store.commit('app/SET_DRAWER', !drawerVal)"
     />
-    <v-avatar color="red" class="mr-3">
-      <span class="white--text headline capitilize" v-if="!$auth.user.avatar">{{
-        $auth.user.name | avatarName
-      }}</span>
-      <img v-else :src="$auth.user.avatar" :alt="$auth.user.name" />
-    </v-avatar>
+
+    <avatar
+      class="mr-3"
+      :src="$auth.user.avatar"
+      :alt="$auth.user.name"
+      nameSize="1.2"
+      size="40"
+    />
     <v-toolbar-title class="capitilize" v-text="$auth.user.name" />
 
     <v-spacer></v-spacer>

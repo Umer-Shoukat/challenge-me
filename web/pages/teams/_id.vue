@@ -63,11 +63,28 @@
         class="ml-auto"
         >{{ hasRequested ? 'Request Pending' : 'Join Team' }}</v-btn
       >
+
+      <v-btn
+        v-if="!isLeader && !hasJoined"
+        @click="leftTeam"
+        class="ml-auto"
+        color="purple"
+      >
+        Left Team
+      </v-btn>
     </div>
 
     <v-card class="team-description">
       <v-card-title>
         <h1>{{ team.name }}</h1>
+        <v-spacer />
+
+        <v-icon
+          v-if="showChatIcon"
+          dark
+          @click="$router.push(`/chats/${team._id}`)"
+          >mdi-chat</v-icon
+        >
       </v-card-title>
       <v-card-text>
         {{ team.description }}
@@ -288,6 +305,7 @@ import imagesPlaceholder from '~/constants/imagesPlaceholder'
 
 import { createNamespacedHelpers } from 'vuex'
 const { mapState, mapMutations } = createNamespacedHelpers('team')
+
 export default {
   name: 'team',
   computed: {
@@ -316,6 +334,10 @@ export default {
     },
     isLeader() {
       return this.$auth.user._id === this.team.leader._id
+    },
+    showChatIcon() {
+      if (!this.hasJoined || this.isLeader) return true
+      return false
     },
   },
   async asyncData({ params, store }) {
@@ -390,8 +412,23 @@ export default {
         this.SET_TEAM_LOADING(false)
       }
     },
+    async leftTeam() {
+      try {
+        this.SET_TEAM_LOADING(true)
+
+        const resp = await this.$axios.post('team-leave', {
+          team_id: this.team._id,
+        })
+
+        const { team } = resp.data
+        this.SET_TEAM(team)
+        this.SET_TEAM_LOADING(false)
+      } catch (err) {
+        console.log(err)
+      }
+    },
     viewPlayer(user) {
-      console.log('view player', user)
+      this.$router.push(`/user/${user._id}`)
     },
   },
 }

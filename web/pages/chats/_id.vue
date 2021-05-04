@@ -2,8 +2,29 @@
   <loader :loading="loading2" class="h-100">
     <div class="message-container" v-if="activeRoom">
       <header class="header">
-        <avatar :alt="activeRoom.title" size="40" :src="activeRoom.avatar" />
-        <h1 class="ml-5">{{ activeRoom.title }}</h1>
+        <div
+          class="d-flex align-items-center cursor-pointer"
+          @click="goToDetails"
+        >
+          <avatar
+            :alt="activeRoom.title"
+            size="40"
+            :src="activeRoom.avatar"
+            :active="activeRoom.active"
+          />
+          <div class="ml-5">
+            <h1>{{ activeRoom.title }}</h1>
+            <p
+              class="subtitle mt-1 sm mb-0"
+              v-if="!activeRoom.active && activeRoom.lastActive"
+            >
+              Last active {{ $dayjs(activeRoom.lastActive).format('LT') }}
+            </p>
+          </div>
+        </div>
+
+        <v-spacer></v-spacer>
+        <v-icon @click="showMembers">mdi-help</v-icon>
       </header>
 
       <client-only>
@@ -20,6 +41,7 @@
                 :src="isOther(msg).avatar"
                 :alt="isOther(msg).name"
                 :color="isOther(msg).color"
+                :active="isOther(msg).active"
                 class="avatar"
                 style="margin-right: 0.8rem; position: relative; top: -7px"
               />
@@ -45,7 +67,22 @@
         </perfect-scrollbar>
       </client-only>
 
-      <footer class="message-input">
+      <footer class="message-input relative">
+        <div
+          v-if="showEmojiContainer"
+          @click="showEmojiContainer = false"
+          class="overlay"
+        ></div>
+        <div class="emiji-picker" v-if="showEmojiContainer">
+          <Picker
+            :data="emojiIndex"
+            set="twitter"
+            @select="showEmoji"
+            native
+            :showPreview="false"
+          />
+        </div>
+
         <v-row>
           <v-col cols="12">
             <v-text-field
@@ -74,11 +111,24 @@ const {
   mapGetters,
   mapMutations,
 } = createNamespacedHelpers('chatroom')
+
+// emoji
+import data from 'emoji-mart-vue-fast/data/all.json'
+import { Picker, EmojiIndex } from 'emoji-mart-vue-fast'
+let emojiIndex = new EmojiIndex(data)
+
+import 'emoji-mart-vue-fast/css/emoji-mart.css'
 export default {
   name: 'chat-container',
+  components: {
+    Picker,
+  },
   data() {
     return {
       message: '',
+      socket: '',
+      emojiIndex: emojiIndex,
+      showEmojiContainer: false,
     }
   },
   computed: {
@@ -93,8 +143,16 @@ export default {
       'CLEAR_MESSAGES',
       'RESET_STATE',
     ]),
+    showEmoji(emoji) {
+      if (!emoji.native) return
+      this.message = this.message + emoji.native
+    },
+    changeIcon() {
+      this.showEmojiContainer = true
+    },
     sendMessage() {
-      this.SEND_MESSAGE({
+      if (!this.message) return
+      const msg = {
         _id: Date.now() + Math.random(),
         from: this.$auth.user._id,
         to: this.$route.params.id,
@@ -102,8 +160,11 @@ export default {
         message: this.message,
         media: [],
         time: new Date(),
-      })
+      }
+      this.SEND_MESSAGE(msg)
+      this.socket.emit('send-message', { msg })
       this.message = null
+      this.showEmojiContainer = false
       this.scrollToBottom()
     },
     isOther({ from }) {
@@ -112,59 +173,92 @@ export default {
       const { members } = this.activeRoom
       const user = members.find((u) => u._id === from)
 
-      if (!user) return false
+      if (!user)
+        return {
+          name: 'REMOVED',
+          avatar: '',
+          color: 'dark',
+        }
 
       return {
         name: user.name,
         avatar: user.avatar,
         color: user.color,
+        active: user.active,
       }
     },
-    changeIcon() {
-      console.log('emoji clicked')
-    },
+
     scrollToBottom() {
       this.$nextTick(() => {
-        this.$refs.chatLogPS.$el.scrollTop = this.$refs.chatLog.scrollHeight
+        if (this.$refs.chatLogPS && this.$refs.chatLog) {
+          this.$refs.chatLogPS.$el.scrollTop = this.$refs.chatLog.scrollHeight
+        }
       })
     },
     async getRoom() {
+      this.RESET_STATE()
+      this.CLEAR_MESSAGES()
       await this.GET_SINGLE_ROOM(this.$route.params.id)
-      if (process.browser) {
-        this.RESET_STATE()
-        this.CLEAR_MESSAGES()
-        this.$socket.emit('join-room', {
-          room_id: this.$route.params.id,
-          user: this.$auth.user,
-        })
+      // scroll to bottom
+      this.scrollToBottom()
+      // initializing socket
+      this.socket = this.$nuxtSocket({})
+      this.socket.emit('join-room', {
+        room_id: this.$route.params.id,
+        user: this.$auth.user,
+      })
 
-        // listeneing for new mssages
-        this.$socket.on('new-message', (msg) => {
-          console.log('A NEW MESSAGE...!!!')
-          this.ADD_NEW_MESSAGE(msg)
-          this.scrollToBottom()
-        })
+      this.socket.on('new-user-join', (user) => {
+        this.ADD_NEW_MEMBER(user)
+      })
 
-        this.$socket.on('new-user-join', (user) => {
-          this.ADD_NEW_MEMBER(user)
+      this.socket.on('new-message', (msg) => {
+        this.ADD_NEW_MESSAGE(msg)
+        this.scrollToBottom()
+      })
+
+      this.socket.on('error', (err) => {
+        this.$notify({
+          group: 'foo',
+          title: 'Message not Send',
+          text: err ? err : 'Somethign Went wrong',
+          type: 'error',
         })
+      })
+    },
+    showMembers() {
+      this.$store.commit('globalModal/SET_ACTIVE_MODAL', {
+        active: true,
+        component: 'TeamMembers',
+        props: {
+          members: this.activeRoom.members,
+        },
+      })
+    },
+    goToDetails() {
+      const { room_type, room_id, members } = this.activeRoom
+
+      if (room_type === 'team_chat') {
+        return this.$router.push(`/teams/${room_id}`)
+      }
+
+      if (room_type === 'chat') {
+        const user = members.filter((u) => u._id !== this.$auth.user._id)
+        return this.$router.push(`/user/${user[0]._id}`)
       }
     },
   },
   mounted() {
-    this.scrollToBottom()
-  },
-  created() {
     this.getRoom()
   },
+  created() {},
   watch: {
     '$route.params.id'(val, old) {
       if (val && val !== old) {
-        this.$socket.emit('leave-room', old)
-
-        this.$socket.disconnect()
-        this.$socket.connect()
-        this.getRoom(this.$route.params.id)
+        if (old) {
+          this.socket.emit('leave-room', old)
+        }
+        this.getRoom()
       }
     },
   },
@@ -201,6 +295,7 @@ $border-radius: 10px;
 
       .message {
         text-align: left;
+        align-items: baseline;
 
         .message-content {
           position: relative;
@@ -250,5 +345,19 @@ $border-radius: 10px;
       display: none;
     }
   }
+}
+
+.emiji-picker {
+  position: absolute;
+  bottom: 4rem;
+  z-index: 11;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 </style>

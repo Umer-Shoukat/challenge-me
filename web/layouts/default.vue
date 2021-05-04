@@ -24,6 +24,10 @@ export default {
     return {}
   },
 
-  created() {},
+  created() {
+    if (process.browser) {
+      this.$nuxtSocket({}).emit('user-logged-in', this.$auth.user)
+    }
+  },
 }
 </script>
