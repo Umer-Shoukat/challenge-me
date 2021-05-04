@@ -1,5 +1,5 @@
 <template>
-  <div class="relative">
+  <div style="position: relative">
     <v-avatar :size="size + 'px'" :color="bgColor">
       <v-img v-if="src" :lazy-src="lazyImage" :src="src" :height="size" contain>
         <template v-slot:placeholder>

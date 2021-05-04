@@ -69,7 +69,7 @@ export default {
 
 <style lang="scss" scoped>
 .avatar-image {
-  position: absolute;
+  position: absolute !important;
   transform: translate(40%, -50%);
 }
 </style>
