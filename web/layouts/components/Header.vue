@@ -15,13 +15,24 @@
 
     <v-spacer></v-spacer>
 
-    <v-btn color="secondary" @click="logout">Logout</v-btn>
+    <v-btn
+      color="secondary"
+      @click="logout"
+      :disabled="loading"
+      :loading="loading"
+      >Logout</v-btn
+    >
   </v-app-bar>
 </template>
 
 <script>
 export default {
   name: 'Header',
+  data() {
+    return {
+      loading: false,
+    }
+  },
   computed: {
     drawerVal() {
       return this.$store.state.app.drawer
@@ -29,8 +40,15 @@ export default {
   },
   methods: {
     async logout() {
-      await this.$auth.logout()
-      this.$router.push('/login')
+      try {
+        this.loading = true
+        await this.$auth.logout()
+        this.$router.push('/login')
+        this.loading = false
+      } catch (error) {
+        this.loading = false
+        console.log(error)
+      }
     },
   },
 }

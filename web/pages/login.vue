@@ -33,6 +33,7 @@
         color="primary"
         class="mt-5"
         :disabled="loading"
+        :loading="loading"
         @click="login"
       >
         Login
@@ -63,9 +64,12 @@ export default {
   methods: {
     async login() {
       try {
+        this.loading = true
         await this.$auth.loginWith('local', { data: this.form })
         this.$router.push('/')
+        this.loading = false
       } catch (error) {
+        this.loading = false
         console.log(error)
       }
     },

@@ -11,10 +11,13 @@
               router
               exact
             >
-              <v-list-item-avatar>
-                <avatar :alt="channel.title" :src="channel.avatar" />
-              </v-list-item-avatar>
-              <v-list-item-content>
+              <avatar
+                :alt="channel.title"
+                :src="channel.avatar"
+                :active="channel.active"
+                size="40"
+              />
+              <v-list-item-content class="ml-3">
                 <v-list-item-title v-text="channel.title" />
                 <v-list-item-subtitle v-text="channel.message" />
               </v-list-item-content>

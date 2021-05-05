@@ -1,6 +1,25 @@
 <template>
-  <div style="position: relative">
-    <v-avatar :size="size + 'px'" :color="bgColor">
+  <v-avatar :size="size + 'px'" :color="bgColor" v-if="!active">
+    <v-img v-if="src" :lazy-src="lazyImage" :src="src" :height="size" contain>
+      <template v-slot:placeholder>
+        <v-row class="fill-height ma-0" align="center" justify="center">
+          <v-progress-circular
+            indeterminate
+            color="grey lighten-5"
+          ></v-progress-circular>
+        </v-row>
+      </template>
+    </v-img>
+
+    <span
+      class="white--text headline uppercase"
+      :style="`font-size: ${nameSize}rem !important`"
+      v-else
+      >{{ alt | avatarName }}</span
+    >
+  </v-avatar>
+  <v-badge v-else round bottom color="success" dot offset-x="10" offset-y="10">
+    <v-avatar :size="size + 'px'" :color="!src ? bgColor : 'dark'">
       <v-img v-if="src" :lazy-src="lazyImage" :src="src" :height="size" contain>
         <template v-slot:placeholder>
           <v-row class="fill-height ma-0" align="center" justify="center">
@@ -19,8 +38,7 @@
         >{{ alt | avatarName }}</span
       >
     </v-avatar>
-    <div class="active success" v-if="active"></div>
-  </div>
+  </v-badge>
 </template>
 
 <script>

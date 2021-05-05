@@ -1,8 +1,10 @@
+import { socketIO } from '../config'
+
 export default {
   sockets: [
     // Required
     {
-      url: 'http://localhost:3000',
+      url: socketIO,
       default: true,
       vuex: {},
       namespaces: {
