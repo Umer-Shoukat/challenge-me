@@ -49,6 +49,9 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: 0,
     },
+    push_notification_id: {
+      type: String,
+    },
     tokens: [
       {
         token: {
@@ -69,6 +72,7 @@ userSchema.methods.toJSON = function () {
   delete userObject.tokens;
   delete userObject.password;
   delete userObject.otp_code;
+  delete userObject.push_notification_id;
   return userObject;
 };
 

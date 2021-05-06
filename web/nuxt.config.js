@@ -1,5 +1,7 @@
+const fs = require('fs')
 import colors from 'vuetify/es5/util/colors'
 import io from './plugins/nuxt-socket-io'
+import firebaseConfig, { fcmPublicVapidKey } from './firebase/firebase-config'
 
 export default {
   head: {
@@ -30,11 +32,21 @@ export default {
   buildModules: ['@nuxtjs/vuetify'],
   modules: [
     '@nuxtjs/axios',
-    '@nuxtjs/pwa',
     '@nuxtjs/auth-next',
     '@nuxtjs/dayjs',
     'nuxt-socket-io',
+    '@nuxtjs/firebase',
   ],
+  firebase: {
+    config: firebaseConfig,
+    services: {
+      messaging: {
+        createServiceWorker: true,
+        fcmPublicVapidKey,
+        inject: fs.readFileSync('./serviceWorker.js'),
+      },
+    },
+  },
   // socket io
   io,
   // dayjs
