@@ -22,7 +22,6 @@ io.on("connect", (socket) => {
   });
 
   socket.on("update-push-noti-id", async ({ token, user_id }) => {
-    console.log(user_id);
     try {
       const user = await User.findById(user_id);
       if (!user) throw new Error("No User found...!");
@@ -48,7 +47,14 @@ io.on("connect", (socket) => {
 
   socket.on("send-message", async ({ msg }) => {
     delete msg._id;
-    const message = await new Message(msg);
+
+    const message = await new Message({
+      ...msg,
+      read_by: {
+        user: msg.from,
+      },
+    });
+
     await message.save();
 
     const room = await ChatRoom.findOne({ room_id: msg.room_id });
@@ -61,19 +67,22 @@ io.on("connect", (socket) => {
     await room.save();
     socket.broadcast.to(msg.room_id).emit("new-message", message);
 
-    const user_id = room.members.filter((u) => u !== message.from)[0];
+    const user_id = room.members.filter(
+      (u) => u.toString() !== message.from.toString()
+    )[0];
 
     const users = await User.find({ _id: user_id });
-
     const notiTokens = users.map((u) => u.push_notification_id);
-
-    console.log(notiTokens);
 
     await sendNotification({
       notification: {
         title: "A new Messsage",
         body: message.message,
         click_action: `${process.env.FRONTEND_WEB_APP}/chats/${room.room_id}`,
+        additional: {
+          room_id: message.room_id,
+          notification_type: "chat",
+        },
       },
       registration_ids: notiTokens,
     });

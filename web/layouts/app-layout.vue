@@ -5,6 +5,7 @@
     </loader>
     <client-only>
       <notifications group="foo"></notifications>
+      <notifications group="push-notification"></notifications>
       <global-modal />
     </client-only>
   </v-app>

@@ -24,6 +24,16 @@ const messageSchema = new mongoose.Schema({
       type: String,
     },
   ],
+  read_by: [
+    {
+      user: String,
+      read_at: {
+        type: Date,
+        default: new Date(),
+      },
+      _id: false,
+    },
+  ],
 });
 
 const Message = mongoose.model("Message", messageSchema);

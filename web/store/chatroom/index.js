@@ -110,6 +110,10 @@ export default {
         ...initialState(),
       }
     },
+    READ_ALL_MESSAGES(state, roomID) {
+      const index = state.allRooms.findIndex((room) => room.room_id === roomID)
+      state.allRooms[index].unread_msg_count = 0
+    },
   },
   actions: {
     async GET_ALL_CHATROOM({ commit }) {

@@ -142,6 +142,7 @@ export default {
       'ADD_NEW_MEMBER',
       'CLEAR_MESSAGES',
       'RESET_STATE',
+      'READ_ALL_MESSAGES',
     ]),
     showEmoji(emoji) {
       if (!emoji.native) return
@@ -199,6 +200,7 @@ export default {
       this.RESET_STATE()
       this.CLEAR_MESSAGES()
       await this.GET_SINGLE_ROOM(this.$route.params.id)
+      this.READ_ALL_MESSAGES(this.$route.params.id)
       // scroll to bottom
       this.scrollToBottom()
       // initializing socket

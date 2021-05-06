@@ -28,9 +28,9 @@ export default {
 
   async mounted() {
     const currentToken = await this.$fire.messaging.getToken()
-    console.log(currentToken)
+    // console.log(currentToken)
 
-    console.log(this.$auth.user._id)
+    // console.log(this.$auth.user._id)
     this.socket.emit('update-push-noti-id', {
       token: currentToken,
       user_id: this.$auth.user._id,
@@ -38,6 +38,24 @@ export default {
 
     this.$fire.messaging.onMessage((payload) => {
       console.info('Message received: ', payload)
+      const {
+        notification: { title, body },
+        data,
+      } = payload
+
+      const additional = JSON.parse(data['gcm.notification.additional'])
+      console.log('ADDITIONAL', additional)
+
+      const { room_id, notification_type } = additional
+
+      console.log(this.$route.params.id)
+      if (this.$route.params.id !== room_id) {
+        this.$notify({
+          group: 'push-notification',
+          title,
+          text: body,
+        })
+      }
     })
     this.$fire.messaging.onTokenRefresh(async () => {
       const refreshToken = await this.$fire.messaging.getToken()

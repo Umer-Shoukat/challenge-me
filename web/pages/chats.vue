@@ -19,7 +19,23 @@
               />
               <v-list-item-content class="ml-3">
                 <v-list-item-title v-text="channel.title" />
-                <v-list-item-subtitle v-text="channel.message" />
+                <v-list-item-subtitle>
+                  <p
+                    class="mb-0 d-flex align-items-center justify-content-between"
+                  >
+                    {{ channel.message }}
+
+                    <span
+                      class="badge primary"
+                      v-if="channel.unread_msg_count"
+                      >{{
+                        channel.unread_msg_count > 9
+                          ? '9+'
+                          : channel.unread_msg_count
+                      }}</span
+                    >
+                  </p>
+                </v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
           </v-list>
@@ -71,5 +87,14 @@ export default {
   &.is-empty {
     grid-template-columns: 1fr;
   }
+}
+.badge {
+  border-radius: 50%;
+  height: 20px;
+  width: 20px;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  line-height: 1.5;
 }
 </style>

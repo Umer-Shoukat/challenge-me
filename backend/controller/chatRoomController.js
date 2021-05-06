@@ -17,6 +17,26 @@ module.exports = {
         .populate("last_msg");
       if (!room) throw new Error("No room found!!!");
 
+      const fetchUnreadMessages = await Message.find({
+        room_id: req.params.id,
+        "read_by.user": { $nin: [req.user._id] },
+      }).countDocuments();
+
+      if (fetchUnreadMessages) {
+        // mark read all the mess
+        await Message.updateMany(
+          {
+            room_id: req.params.id,
+            "read_by.user": { $nin: [req.user._id] },
+          },
+          {
+            $push: {
+              read_by: { user: req.user._id },
+            },
+          }
+        );
+      }
+
       const messages = await Message.find({ room_id: req.params.id });
 
       res.status(200).send({ room, messages });
@@ -31,7 +51,23 @@ module.exports = {
         .populate("team")
         .populate("last_msg");
 
-      res.status(200).send({ rooms });
+      const formatedRooms = [];
+
+      for (const index in rooms) {
+        const room = rooms[index];
+
+        const unread_msg_count = await Message.find({
+          room_id: room.room_id,
+          "read_by.user": { $nin: req.user._id },
+        }).countDocuments();
+
+        formatedRooms.push({
+          ...room._doc,
+          unread_msg_count,
+        });
+      }
+
+      res.status(200).send({ rooms: formatedRooms });
     } catch (error) {
       handleErrors(res, error);
     }
