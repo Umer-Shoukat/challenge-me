@@ -5,7 +5,7 @@ const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const app = require("../server").app;
 const { apiVersion, swaggerOptions } = require("../constants/constants");
-
+const logger = require("morgan");
 // api-routes
 const {
   userRoutes,
@@ -19,6 +19,7 @@ app.get("/", (req, res) => {
   res.send(`<h1>Will render the admin panel for the app...!</h1>`);
 });
 
+app.use(logger("dev"));
 app.use(express.json());
 // all the api-end-points
 app.use(apiVersion, userRoutes);
