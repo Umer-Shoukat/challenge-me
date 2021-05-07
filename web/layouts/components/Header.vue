@@ -5,6 +5,7 @@
     />
 
     <avatar
+      v-if="$auth.user"
       class="mr-3"
       :src="$auth.user.avatar"
       :alt="$auth.user.name"
