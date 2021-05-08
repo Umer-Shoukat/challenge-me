@@ -53,3 +53,33 @@ p.sm {
   font-size: 10px;
   line-height: 1.3;
 }
+
+// removing the chrome default autofill
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #1e1e1e inset !important;
+}
+
+@-webkit-keyframes autofill {
+  0%,
+  100% {
+    color: #fff !important;
+    background: transparent;
+  }
+}
+
+input:-webkit-autofill {
+  -webkit-animation-delay: 1s;
+  -webkit-animation-name: autofill;
+  -webkit-animation-fill-mode: both;
+
+  background: transparent !important;
+}
+
+h1 {
+  @media (max-width: 600px) {
+    font-size: 1.5rem;
+  }
+}

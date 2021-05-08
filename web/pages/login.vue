@@ -7,9 +7,12 @@
         :rules="rules"
         hide-details="auto"
         v-model="form.email"
+        placeholder=" "
+        type="email"
       ></v-text-field>
 
       <v-text-field
+        placeholder=" "
         label="Password"
         :rules="rules"
         hide-details="auto"
@@ -18,6 +21,7 @@
         :type="showPass ? 'text' : 'password'"
         :append-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
         @click:append="showPass = !showPass"
+        :name="Math.random()"
       ></v-text-field>
 
       <p class="d-flex align-items-center justify-content-between mt-3">

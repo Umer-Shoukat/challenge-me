@@ -7,7 +7,7 @@
             <v-list-item
               v-for="(channel, i) in rooms"
               :key="i"
-              :to="`/chats/${channel.room_id}`"
+              :to="`/${chatPrefix}/${channel.room_id}`"
               router
               exact
             >
@@ -22,6 +22,7 @@
                 <v-list-item-subtitle>
                   <p
                     class="mb-0 d-flex align-items-center justify-content-between"
+                    style="max-width: 200px"
                   >
                     {{ channel.message }}
 
@@ -41,7 +42,7 @@
           </v-list>
         </v-card>
 
-        <v-card>
+        <v-card v-if="windowWidth > 769">
           <v-card-text class="h-100 p-0">
             <nuxt-child v-if="$route.params.id" />
             <div class="center-center" v-if="!$route.params.id">
@@ -63,16 +64,36 @@
 <script>
 import { createNamespacedHelpers } from 'vuex'
 const { mapGetters, mapActions, mapState } = createNamespacedHelpers('chatroom')
+const appModule = createNamespacedHelpers('app')
+// mixin
+import appSetting from '~/mixins/app-setting'
 export default {
   name: 'chat',
-  data: () => ({}),
+  mixins: [appSetting],
+  data: () => ({
+    chatPrefix: 'chats',
+  }),
   computed: {
     ...mapGetters(['rooms']),
     ...mapState(['loading']),
+    ...appModule.mapState(['windowWidth']),
   },
   async asyncData({ store }) {
     await store.dispatch('chatroom/GET_ALL_CHATROOM')
     return true
+  },
+  created() {
+    if (this.windowWidth < 769) {
+      this.chatPrefix = 'mob/chat'
+    }
+  },
+
+  watch: {
+    windowWidth(val, old) {
+      if (val && val < 769) {
+        this.chatPrefix = 'mob/chat'
+      }
+    },
   },
 }
 </script>
@@ -83,6 +104,10 @@ export default {
   grid-gap: 1rem;
   grid-template-columns: minmax(150px, 300px) 1fr;
   height: calc(100vh - 130px);
+
+  @media (max-width: 769px) {
+    grid-template-columns: 1fr;
+  }
 
   &.is-empty {
     grid-template-columns: 1fr;

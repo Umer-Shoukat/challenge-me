@@ -1,11 +1,13 @@
 <template>
-  <MessageLogs />
+  <v-card>
+    <MessageLogs />
+  </v-card>
 </template>
 
 <script>
 import MessageLogs from '~/components/chat/message-logs'
 export default {
-  name: 'desktop-chat',
+  name: 'mob-chat',
   components: {
     MessageLogs,
   },
