@@ -1,18 +1,22 @@
 require("dotenv").config();
 require("./mongoose/mongoose");
-
 const http = require("http");
-
 const express = require("express");
 const socketio = require("socket.io");
 const cors = require("cors");
 const logger = require("morgan");
+const passport = require("passport");
+const session = require("express-session");
+const MongoStore = require("connect-mongo");
 // swagger
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
-
 const Websocket = require("./socket/socket");
 const { apiVersion, swaggerOptions } = require("./constants/constants");
+
+// password-js
+require("./config/passport")(passport);
+
 // api-routes
 const {
   userRoutes,
@@ -29,6 +33,27 @@ app.set(port);
 app.use(cors());
 app.use(logger("dev"));
 app.use(express.json());
+
+app.use(
+  session({
+    secret: "keyboard cat",
+    resave: false,
+    saveUninitialized: false,
+    store: new MongoStore({
+      mongoUrl: process.env.DATABASE_CONNECTION,
+    }),
+  })
+);
+
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Set global var
+app.use(function (req, res, next) {
+  res.locals.user = req.user || null;
+  next();
+});
 
 app.get("/", (req, res) => {
   res.send(`<h1>Will render the admin panel for the app...!</h1>`);

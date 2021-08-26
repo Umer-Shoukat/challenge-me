@@ -24,6 +24,13 @@
         :name="Math.random()"
       ></v-text-field>
 
+      <!-- href="http://localhost:3000/api/v1/auth/google" -->
+      <v-btn large class="w-100 my-8" @click="loginWithGoogle"
+        >Login with google</v-btn
+      >
+
+      <v-btn large class="w-100 my-8" @click="logout">Logout</v-btn>
+
       <p class="d-flex align-items-center justify-content-between mt-3">
         <nuxt-link to="/forgot-password">Forgot Password</nuxt-link>
 
@@ -77,6 +84,20 @@ export default {
         console.log(error)
       }
     },
+    async loginWithGoogle() {
+      this.$auth.loginWith('google')
+
+      // const resp = await this.$axios.get('/auth/google')
+      // console.log(resp)
+    },
+    async logout() {
+      await this.$axios.get('/logout')
+    },
+  },
+  created() {
+    setTimeout(() => {
+      console.log(this.$auth)
+    }, 5000)
   },
 }
 </script>

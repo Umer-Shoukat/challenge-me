@@ -2,6 +2,7 @@ const fs = require('fs')
 import colors from 'vuetify/es5/util/colors'
 import io from './plugins/nuxt-socket-io'
 import firebaseConfig, { fcmPublicVapidKey } from './firebase/firebase-config'
+const config = require('./config')
 
 export default {
   head: {
@@ -70,6 +71,15 @@ export default {
           login: { url: '/login', method: 'post' },
           logout: { url: '/logout', method: 'get' },
           user: { url: '/me', method: 'get' },
+        },
+      },
+      google: {
+        // clientId:
+        //   '593146021377-ci75hnop4at20ugemph42v5s6itg4qk6.apps.googleusercontent.com',
+        endpoints: {
+          authorization: 'http://localhost:3000/api/v1/auth/google',
+          userInfo: 'http://localhost:3000/api/v1/me',
+          logout: 'http://localhost:3000/api/v1/logout',
         },
       },
     },

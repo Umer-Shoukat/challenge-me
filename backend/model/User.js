@@ -14,13 +14,11 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       unique: true,
-      required: true,
       lowercase: true,
       trim: true,
     },
     password: {
       type: String,
-      required: true,
       minlength: 7,
       trim: true,
     },
@@ -36,7 +34,6 @@ const userSchema = new mongoose.Schema(
     },
     dob: {
       type: String,
-      required: true,
     },
     active: {
       type: Boolean,
@@ -60,6 +57,14 @@ const userSchema = new mongoose.Schema(
         },
       },
     ],
+    googleId: {
+      type: String,
+      default: "",
+    },
+    provider: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,

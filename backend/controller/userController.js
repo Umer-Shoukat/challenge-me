@@ -43,9 +43,11 @@ module.exports = {
   // --------GET LOGGED IN USER DETAILS----------------
   // --------------------------------------------------
   async getMe(req, res) {
+    console.log(req);
+
     try {
       res.send({
-        user: req.user,
+        user: "hello",
       });
     } catch (error) {
       handleErrors(res, error);
@@ -85,10 +87,10 @@ module.exports = {
       // if password is changed recreate the token;;
       if (updates.includes("password")) {
         // removing the old token;
-        user.tokens = user.tokens.filter((t) => t.token !== req.token);
+        user.tokens = [];
+        let token = await user.generateAuthToken();
         await user.save();
         // generating the new token
-        let token = await user.generateAuthToken();
         res.status(200).send({ user, token });
         return;
       }
@@ -140,7 +142,14 @@ module.exports = {
   // --------LOGGED OUT FROM ONE DEVICE----------------
   // --------------------------------------------------
   async logout(req, res) {
+    console.log(req.isAuthenticated(), req.user);
     try {
+      if ("logout" in req) {
+        req.logout();
+        res.status(201).send({ msg: "User logged out successfully" });
+        return;
+      }
+
       const { token, user } = req;
       user.tokens = user.tokens.filter((t) => t.token !== token);
       await user.save();

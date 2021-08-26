@@ -77,7 +77,7 @@ router.post("/register", register);
  *       403:
  *         description: Username and password don't match
  */
-router.get("/me", authMiddleWare, getMe);
+router.get("/me", getMe);
 /**
  * @swagger
  * /user/:id:
@@ -163,7 +163,7 @@ router.get("/users", authMiddleWare, getAllUsers);
  *       403:
  *         description: Username and password don't match
  */
-router.get("/logout", authMiddleWare, logout);
+router.get("/logout", logout);
 
 /**
  * @swagger
@@ -255,5 +255,24 @@ router.post("/reset-password", resetPassword);
  */
 
 router.post("/upload-avatar", authMiddleWare, getFileMiddleWare, uploadAvatar);
+
+const passport = require("passport");
+router.get(
+  "/auth/google",
+  passport.authenticate("google", { scope: ["profile"] })
+);
+
+// GET /auth/google/callback
+//   Use passport.authenticate() as route middleware to authenticate the
+//   request.  If authentication fails, the user will be redirected back to the
+//   login page.  Otherwise, the primary route function function will be called,
+//   which, in this example, will redirect the user to the home page.
+router.get(
+  "/auth/google/callback",
+  passport.authenticate("google", { failureRedirect: "/login" }),
+  function (req, res) {
+    res.redirect(process.env.FRONTEND_WEB_APP);
+  }
+);
 
 module.exports = router;
